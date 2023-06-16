@@ -26,6 +26,7 @@ const main = async () => {
   ];
 
   const negativePrompts = [
+    "",
     "frame, framing, photo, realistic, text",
     "frame, framing, photo, realistic, text, portrait, face, person, people, eyes, nose, mouth",
   ]
@@ -33,7 +34,6 @@ const main = async () => {
   const styles = [
     "bauhaus ",
     "geometric ",
-    "tachisme ",
     "de stijl ",
   ]
 

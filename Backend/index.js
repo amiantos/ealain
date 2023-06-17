@@ -21,22 +21,25 @@ const main = async () => {
   var prompts = [];
 
   const entries = [
-    "i had a wonderful day. For the first time in a long time I went outside and I saw the sun and it didn’t make me want to run inside and kill myself",
-    "Sometimes when I sit alone at night, my mind starts racing, and I can’t help but feel consumed by the fear of losing everything I’ve gained, and worse, the fear of not caring when I do.",
-    "When I walk home late at night I can't help but feel their eyes following me from the bushes",
+    "Spending a wonderful day at the park watching the masses soak in the sun",
+    "Sitting at home alone at night wondering if I'll ever find love",
+    "Walking home alone at night and feeling very scared and apprehensive",
+    "The feeling of meeting someone new and exciting for the first time",
+    "Spending a night in the city frequenting jazz clubs and bars",
   ];
 
   const negativePrompts = [
-    "",
-    "frame, framing, photo, realistic, text",
-    "frame, framing, photo, realistic, text, portrait, face, person, people, eyes, nose, mouth",
-  ]
+    "frame, framing, photo, realistic, text, 3d, signature, signed, watercolor",
+    "frame, framing, photo, realistic, text, 3d, signature, signed, watercolor, portrait, face, person, people, eyes, nose, mouth",
+  ];
 
   const styles = [
-    "bauhaus ",
-    "geometric ",
-    "de stijl ",
-  ]
+    "Abstract Wassily Kandisnky style",
+    "Abstract Bauhaus",
+    "Abstract Geometric",
+    "Abstract De Stijl",
+    "Abstract Cubism",
+  ];
 
   const colorSchemes = [
     "white, black, red, yellow ",
@@ -55,10 +58,25 @@ const main = async () => {
     "black and white ",
     "three colors only ",
     "two colors only ",
-  ]
+  ];
 
-  for (var i = 0; i < 12; i++) {
-    prompts.push("Abstract " + styles[Math.floor(Math.random() * styles.length)] + "art based on the text: \"" + entries[Math.floor(Math.random() * entries.length)] + "\" " + colorSchemes[Math.floor(Math.random() * colorSchemes.length)] + "### " + negativePrompts[Math.floor(Math.random() * negativePrompts.length)]);
+  for (var i = 0; i < 24; i++) {
+    const style = styles[Math.floor(Math.random() * styles.length)];
+    const entry = entries[Math.floor(Math.random() * entries.length)];
+    const colorScheme =
+      colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
+    const negativePrompt =
+      negativePrompts[Math.floor(Math.random() * negativePrompts.length)];
+
+    prompts.push(
+      style +
+        ' art based on the text: "' +
+        entry +
+        '" ' +
+        colorScheme +
+        "### " +
+        negativePrompt
+    );
   }
 
   for (prompt of prompts) {

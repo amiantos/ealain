@@ -221,3 +221,6 @@ dist
 .pnp.*
 
 config.json
+
+images
+.DS_Store

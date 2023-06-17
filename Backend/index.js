@@ -129,7 +129,7 @@ async function uploadImage(imageObject, prompt) {
   const txtFileName = "images/image-" + imageObject.id + ".txt";
 
   fs.writeFileSync("images/" + fileName, Buffer.from(imageBuffer));
-  fs.writeFileSync(txtFileName, prompt)
+  fs.writeFileSync(txtFileName, prompt);
 
   const command = new PutObjectCommand({
     Bucket: "ealain",
@@ -203,6 +203,9 @@ async function generateImages(prompt) {
 
   var results = [];
   for (const result of generationResult.generations) {
+    if (result.censored) {
+      continue;
+    }
     results.push({ id: result.id, url: result.img });
   }
 

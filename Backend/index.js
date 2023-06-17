@@ -3,6 +3,7 @@ const { Configuration, OpenAIApi } = require("openai");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { AIHorde } = require("@zeldafan0225/ai_horde");
 const { setTimeout } = require("node:timers/promises");
+const fs = require("fs");
 
 const client = new S3Client({
   region: "us-east-1",
@@ -66,7 +67,7 @@ const main = async () => {
     console.log(results);
 
     for (const result of results) {
-      const success = await uploadImage(result);
+      const success = await uploadImage(result, prompt);
       if (success) {
         totalResults.push(
           "https://ealain.s3.amazonaws.com/image-" + result.id + ".webp"
@@ -102,13 +103,20 @@ async function uploadObject(object) {
   }
 }
 
-async function uploadImage(imageObject) {
+async function uploadImage(imageObject, prompt) {
   const imageResponse = await fetch(imageObject.url);
+
+  const imageBuffer = await imageResponse.arrayBuffer();
+  const fileName = "image-" + imageObject.id + ".webp";
+  const txtFileName = "images/image-" + imageObject.id + ".txt";
+
+  fs.writeFileSync("images/" + fileName, Buffer.from(imageBuffer));
+  fs.writeFileSync(txtFileName, prompt)
 
   const command = new PutObjectCommand({
     Bucket: "ealain",
-    Key: "image-" + imageObject.id + ".webp",
-    Body: await imageResponse.arrayBuffer(),
+    Key: fileName,
+    Body: imageBuffer,
     ACL: "public-read",
   });
 
@@ -131,7 +139,7 @@ async function generateImages(prompt) {
 
   // start the generation of an image with the given payload
   const generation = await ai_horde.postAsyncImageGenerate({
-    models: ["Deliberate", "Dreamshaper"],
+    models: ["Deliberate"],
     prompt: prompt,
     params: {
       steps: 15,

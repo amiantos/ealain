@@ -27,9 +27,8 @@ const main = async () => {
   ];
 
   const negativePrompts = [
-    "",
     "frame, framing, photo, realistic, text",
-    "frame, framing, photo, realistic, text, portrait, face, person, people, eyes, nose, mouth",
+    "frame, framing, photo, realistic, text, portrait, face, person, people",
   ]
 
   const styles = [
@@ -40,24 +39,24 @@ const main = async () => {
 
   const colorSchemes = [
     "white, black, red, yellow ",
-    "white, black, purple, blue, green ",
+    "white, black, blue, green ",
     "white, black, yellow, green ",
+    "white, black, red, blue",
+    "white, black, orange, purple",
     "white, black, red ",
     "white, black, orange ",
     "white, black, yellow ",
     "white, black, green ",
     "white, black, blue ",
-    "white, black, indigo ",
-    "white, black, violet ",
-    "cool colors only ",
-    "warm colors only ",
+    "white, black, purple ",
+    "cool colors ",
+    "warm colors ",
+    "muted colors ",
     "grayscale ",
     "black and white ",
-    "three colors only ",
-    "two colors only ",
   ]
 
-  for (var i = 0; i < 12; i++) {
+  for (var i = 0; i < 50; i++) {
     prompts.push("Abstract " + styles[Math.floor(Math.random() * styles.length)] + "art based on the text: \"" + entries[Math.floor(Math.random() * entries.length)] + "\" " + colorSchemes[Math.floor(Math.random() * colorSchemes.length)] + "### " + negativePrompts[Math.floor(Math.random() * negativePrompts.length)]);
   }
 

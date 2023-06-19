@@ -6,7 +6,7 @@ const { setTimeout } = require("node:timers/promises");
 const fs = require("fs");
 
 const client = new S3Client({
-  region: "us-east-1",
+  region: config.aws_region,
   credentials: {
     accessKeyId: config.aws_access_key_id,
     secretAccessKey: config.aws_secret_access_key,
@@ -69,7 +69,7 @@ const main = async () => {
       const success = await uploadImage(result, prompt);
       if (success) {
         totalResults.push(
-          "https://ealain.s3.amazonaws.com/image-" + result.id + ".webp"
+          config.s3_url_prefix + "image-" + result.id + ".webp"
         );
       }
     }
@@ -86,7 +86,7 @@ const main = async () => {
 async function uploadObject(object) {
   // Convert object to json string, and upload to S3 as "latest.json"
   const command = new PutObjectCommand({
-    Bucket: "ealain",
+    Bucket: config.s3_bucket,
     Key: "latest.json",
     Body: JSON.stringify(object),
     ACL: "public-read",
@@ -113,7 +113,7 @@ async function uploadImage(imageObject, prompt) {
   fs.writeFileSync(txtFileName, prompt);
 
   const command = new PutObjectCommand({
-    Bucket: "ealain",
+    Bucket: config.s3_bucket,
     Key: fileName,
     Body: imageBuffer,
     ACL: "public-read",
@@ -132,7 +132,7 @@ async function uploadImage(imageObject, prompt) {
 async function generateImages(prompt) {
   const apiKey = config.ai_horde_api_key;
   const ai_horde = new AIHorde({
-    client_agent: "Ealain:v1.0:https://github.com/amiantos/ealain",
+    client_agent: config.client_agent,
     default_token: apiKey,
   });
 

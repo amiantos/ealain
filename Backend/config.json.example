@@ -1,6 +1,10 @@
 {
+    "aws_region": "us-east-1",
     "aws_access_key_id": "",
     "aws_secret_access_key": "",
+    "s3_bucket": "",
+    "s3_url_prefix": "https://url.com/",
     "openai_api_key": "",
-    "ai_horde_api_key": ""
+    "ai_horde_api_key": "",
+    "client_agent": ""
 }

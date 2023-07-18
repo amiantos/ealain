@@ -1,9 +1,13 @@
 {
-    "aws_region": "us-east-1",
+    "aws_region": ",
     "aws_access_key_id": "",
     "aws_secret_access_key": "",
     "s3_bucket": "",
-    "s3_url_prefix": "https://url.com/",
+    "r2_access_key_id": "",
+    "r2_secret_access_key": "",
+    "r2_bucket": "",
+    "r2_endpoint": "",
+    "r2_url_prefix": "",
     "openai_api_key": "",
     "ai_horde_api_key": "",
     "client_agent": ""

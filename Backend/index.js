@@ -5,11 +5,20 @@ const { AIHorde } = require("@zeldafan0225/ai_horde");
 const { setTimeout } = require("node:timers/promises");
 const fs = require("fs");
 
-const client = new S3Client({
+const s3_client = new S3Client({
   region: config.aws_region,
   credentials: {
     accessKeyId: config.aws_access_key_id,
     secretAccessKey: config.aws_secret_access_key,
+  },
+});
+
+const r2_client = new S3Client({
+  region: "auto",
+  endpoint: config.r2_endpoint,
+  credentials: {
+    accessKeyId: config.r2_access_key_id,
+    secretAccessKey: config.r2_secret_access_key,
   },
 });
 
@@ -69,7 +78,7 @@ const main = async () => {
       const success = await uploadImage(result, prompt);
       if (success) {
         totalResults.push(
-          config.s3_url_prefix + "image-" + result.id + ".webp"
+          config.r2_url_prefix + "image-" + result.id + ".webp"
         );
       }
     }
@@ -93,7 +102,7 @@ async function uploadObject(object) {
   });
 
   try {
-    const response = await client.send(command);
+    const response = await s3_client.send(command);
     console.log(response);
     return true;
   } catch (err) {
@@ -113,14 +122,15 @@ async function uploadImage(imageObject, prompt) {
   fs.writeFileSync(txtFileName, prompt);
 
   const command = new PutObjectCommand({
-    Bucket: config.s3_bucket,
+    Bucket: config.r2_bucket,
     Key: fileName,
     Body: imageBuffer,
+    ContentType: "image/webp",
     ACL: "public-read",
   });
 
   try {
-    const response = await client.send(command);
+    const response = await r2_client.send(command);
     console.log(response);
     return true;
   } catch (err) {

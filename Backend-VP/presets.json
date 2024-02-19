@@ -1,0 +1,294 @@
+[
+    {
+        "id": "ealain-classic",
+        "name": "Ealain Classic",
+        "prompt_template": "Abstract {{art_style}} art based on the text: \"{{entry}}\" {{color_scheme}} ### {{negative_prompt}}",
+        "template_data": {
+            "art_style": [
+                "bauhaus",
+                "geometric",
+                "de stijl"
+            ],
+            "entry": [
+                "i had a wonderful day. For the first time in a long time I went outside and I saw the sun and it didn’t make me want to run inside and kill myself",
+                "Sometimes when I sit alone at night, my mind starts racing, and I can’t help but feel consumed by the fear of losing everything I’ve gained, and worse, the fear of not caring when I do.",
+                "When I walk home late at night I can't help but feel their eyes following me from the bushes"
+            ],
+            "color_scheme": [
+                "white, black, red, yellow",
+                "white, black, blue, green",
+                "white, black, yellow, green",
+                "white, black, red, blue",
+                "white, black, orange, purple",
+                "white, black, red",
+                "white, black, orange",
+                "white, black, yellow",
+                "white, black, green",
+                "white, black, blue",
+                "white, black, purple",
+                "cool colors",
+                "warm colors",
+                "muted colors",
+                "grayscale",
+                "black and white"
+            ],
+            "negative_prompt": [
+                "frame, framing, photo, realistic, text",
+                "frame, framing, photo, realistic, text, portrait, face, person, people"
+            ]
+        },
+        "models": [
+            "Deliberate"
+        ],
+        "params": {
+            "steps": 15,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 5,
+            "hires_fix": false,
+            "clip_skip": 1,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "n": 5,
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    },
+    {
+        "id": "color-improv",
+        "name": "Color Improvisation",
+        "prompt_template": "abstract, {{color_scheme}} ### lines",
+        "template_data": {
+            "color_scheme": [
+                "",
+                "red, yellow",
+                "blue, green",
+                "yellow, green",
+                "red, blue",
+                "orange, purple",
+                "red",
+                "orange",
+                "yellow",
+                "green",
+                "blue",
+                "purple",
+                "cool colors",
+                "warm colors",
+                "muted colors",
+                "grayscale",
+                "black and white"
+            ]
+        },
+        "models": [
+            "Deliberate",
+            "Realistic Vision"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 2,
+            "hires_fix": false,
+            "clip_skip": 1,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "n": 5,
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    },
+    {
+        "id": "smoke-water",
+        "name": "Smoke on the Water",
+        "prompt_template": "smoke spiral in a dark waters, lace satin silky flowing smoke like clouds and smoke, wild windy water, perfect proportion, detailed, intricate details, elaborate, centered, in frame, dramatic lighting, trending on cgsociety, intricate, epic, {{color_scheme}}",
+        "template_data": {
+            "color_scheme": [
+                "",
+                "red, yellow",
+                "blue, green",
+                "yellow, green",
+                "red, blue",
+                "orange, purple",
+                "red",
+                "orange",
+                "yellow",
+                "green",
+                "blue",
+                "purple",
+                "cool colors",
+                "warm colors",
+                "muted colors",
+                "grayscale",
+                "black and white"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 2,
+            "hires_fix": false,
+            "clip_skip": 1,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "n": 5,
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    },
+    {
+        "id": "cozyhomes",
+        "name": "Cozy Homes",
+        "prompt_template": "Thomas Kinkade Style - Thomas Kinkade style portrait of {{subject}}, {{extras}}. Highly detailed",
+        "template_data": {
+            "subject": [
+                "a cottage in a shaded forest",
+                "a log cabin in the woods",
+                "a log cabin in the mountains",
+                "a cottage in the mountains"
+            ],
+            "extras": [
+                "stream of water",
+                "deer grazing nearby",
+                "rose garden outside",
+                "starry night",
+                "raining outside"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "cfg_scale": 2,
+            "sampler_name": "k_dpmpp_sde",
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "height": 576,
+            "width": 1024,
+            "steps": 30,
+            "karras": true,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "154238",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "135867",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ]
+        }
+    },
+    {
+        "id": "snowylandscapes",
+        "name": "Snowy Landscapes",
+        "prompt_template": "by Naoko Takeuchi and Igor Zenin in the style of Michal Karcz ### low quality, bad anatomy, mess, bizarre, cartoon, painting, illustration, deviant",
+        "template_data": {},
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "cfg_scale": 2,
+            "sampler_name": "k_dpmpp_sde",
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "height": 576,
+            "width": 1024,
+            "steps": 30,
+            "karras": true,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "152309",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "283697",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "293991",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ]
+        }
+    },
+    {
+        "id": "watercolor-sl",
+        "name": "Watercolor Still Life",
+        "prompt_template": "Norman Rockwell watercolor painting of {{subject}}, solo, soft colors, bleeding ink, watercolor (medium) ### 3d, photorealistic, sharp focus, nsfw",
+        "template_data": {
+            "subject": [
+                "fruit on a plate",
+                "boquet of flowers in a vase",
+                "beautiful necklace lying in a jewelry box",
+                "a bowl of soup",
+                "a cup of coffee",
+                "a glass of wine",
+                "a loaf of bread",
+                "a bowl of fruit",
+                "rocks and seashells"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "cfg_scale": 2,
+            "sampler_name": "k_dpmpp_sde",
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "height": 576,
+            "width": 1024,
+            "steps": 30,
+            "karras": true,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "132247",
+                    "model": 0.55,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "229061",
+                    "model": 0.5,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ]
+        }
+    }
+]

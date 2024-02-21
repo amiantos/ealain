@@ -19,13 +19,20 @@ const main = async () => {
   // Generate images
   for (const prompt of presets) {
     console.log("Generating images for " + prompt.name)
-    
+
+    const s3Opts = { Bucket: config.r2_bucket, Prefix: prompt.id + "/image"};
+    const checkFilesArray = await getAllS3Files(r2_client, s3Opts);
+    if (checkFilesArray.length > 20) {
+      console.log("Skipping prompt " + prompt.name + " because it already has 20 images.");
+      continue;
+    }
+
     for (var i = 0; i < 10; i++) {
       const output = createRandomPromptFromTemplate(prompt);
       console.log("Generated prompt: " + output);
 
       const params = prompt.params;
-      params.n = 5;
+      params.n = 3;
       try {
         const results = await generateImages(output, prompt.models, params);
         for (const result of results) {
@@ -37,7 +44,6 @@ const main = async () => {
       }
     }
 
-    const s3Opts = { Bucket: config.r2_bucket, Prefix: prompt.id + "/image"};
     const filesArray = await getAllS3Files(r2_client, s3Opts);
     const filesURLArray = filesArray.map((file) => config.r2_url_prefix + file);
     const success = await uploadObject(JSON.stringify(filesURLArray), prompt.id + "/latest.json");

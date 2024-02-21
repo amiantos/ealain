@@ -1,0 +1,44 @@
+[
+    {
+        "id": "scenic-bnb",
+        "name": "Scenic Vacation",
+        "prompt_template": "inside a cozy cottage, comfy bed and warm blanket, plants, flowers, decoration, view from the windows of a quiet {{location}}, sunrise, peaceful, vibrant colors, lineart, detailed",
+        "template_data": {
+            "location": [
+                "beach",
+                "forest",
+                "desert",
+                "mountain",
+                "snowy hillside"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 5,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "177544",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ],
+            "clip_skip": 1,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    }
+]

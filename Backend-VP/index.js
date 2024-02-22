@@ -18,6 +18,8 @@ const r2_client = new S3Client({
   },
 });
 
+const totalImages = 50;
+
 
 const main = async () => {
   const serverAddress = '127.0.0.1:8188';
@@ -27,13 +29,15 @@ const main = async () => {
 
   for (const prompt of presets) {
     console.log("Generating images for " + prompt.name)
+
     const workflow = JSON.parse(fs.readFileSync(`./workflows/${prompt.id}-api.json`));
 
-    var repetitions = 10;
-    var n = 5;
+    var batch_size = 5;
+    var repetitions = totalImages / batch_size;
     if (Object.keys(prompt.template_data).length === 0) {
       repetitions = 1;
-      n = 50
+      batch_size = totalImages;
+      console.log("Using high batch_size for prompt " + prompt.name);
     }
     
     // check if /images directory exists and create it if it does not exist
@@ -55,18 +59,19 @@ const main = async () => {
 
     for (var i = 0; i < repetitions; i++) {
       var prompts = createRandomPromptFromTemplate(prompt);
-      // load json from file that is named prompt-id-api.json in workflows folder
+      var seed = Math.floor(Math.random() * 1000000000000000);
+      console.log("Generated prompt: \"" + prompts.positive + " ### " + prompts.negative + "\" | Seed: " + seed);
       workflow['6'].inputs.text = prompts.positive;
       workflow['7'].inputs.text = prompts.negative;
-      workflow['3'].inputs.seed = Math.floor(Math.random() * 1000000);
+      workflow['3'].inputs.seed = seed;
+      workflow['5'].inputs.batch_size = batch_size;
 
       const images = await client.getImages(workflow);
 
       for (const nodeId of Object.keys(images)) {
-        for (const img of images[nodeId]) {
+        for (const [index, img] of images[nodeId].entries()) {
           const arrayBuffer = await img.blob.arrayBuffer();
-
-          const outputPath = join(outputDir, img.image.filename);
+          const outputPath = join(outputDir, `image-${seed}-${index.toString().padStart(3, '0')}.png`);
           await writeFile(outputPath, Buffer.from(arrayBuffer));
         }
       }

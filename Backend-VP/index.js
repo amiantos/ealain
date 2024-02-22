@@ -5,6 +5,9 @@ const { setTimeout } = require("node:timers/promises");
 const fs = require("fs");
 const presets = require("./presets.json");
 const Mustache = require('mustache');
+const { ComfyUIClient } = require('comfy-ui-client');
+const join = require('path').join;
+const writeFile = require('fs').promises.writeFile;
 
 const r2_client = new S3Client({
   region: "auto",
@@ -15,62 +18,120 @@ const r2_client = new S3Client({
   },
 });
 
+
 const main = async () => {
-  // Generate images
+  const serverAddress = '127.0.0.1:8188';
+  const clientId = 'ealain-vp-generator';
+  const client = new ComfyUIClient(serverAddress, clientId);
+  await client.connect();
+
   for (const prompt of presets) {
     console.log("Generating images for " + prompt.name)
+    const workflow = JSON.parse(fs.readFileSync(`./workflows/${prompt.id}-api.json`));
 
-    const s3Opts = { Bucket: config.r2_bucket, Prefix: prompt.id + "/image"};
-    const checkFilesArray = await getAllS3Files(r2_client, s3Opts);
-    if (checkFilesArray.length > 20) {
-      console.log("Skipping prompt " + prompt.name + " because it already has 20 images.");
-      continue;
+    var repetitions = 10;
+    var n = 5;
+    if (Object.keys(prompt.template_data).length === 0) {
+      repetitions = 1;
+      n = 50
+    }
+    
+    // check if /images directory exists and create it if it does not exist
+    if (!fs.existsSync("images")) {
+      fs.mkdirSync("images");
     }
 
-    for (var i = 0; i < 10; i++) {
-      const output = createRandomPromptFromTemplate(prompt);
-      console.log("Generated prompt: " + output);
+    // check if /images/id directory exists and create it if it does not exist
+    if (!fs.existsSync("images/" + prompt.id)) {
+      fs.mkdirSync("images/" + prompt.id);
+    }
+    const outputDir = `images/${prompt.id}`;
 
-      const params = prompt.params;
-      params.n = 3;
-      try {
-        const results = await generateImages(output, prompt.models, params);
-        for (const result of results) {
-          const success = await uploadImage(result, prompt.id);
-          if (success) { console.log("Saved image " + result.id ); }
+    // erase contents of outputDir
+    const files = fs.readdirSync(outputDir);
+    for (const file of files) {
+      fs.unlinkSync(join(outputDir, file));
+    }
+
+    for (var i = 0; i < repetitions; i++) {
+      var prompts = createRandomPromptFromTemplate(prompt);
+      // load json from file that is named prompt-id-api.json in workflows folder
+      workflow['6'].inputs.text = prompts.positive;
+      workflow['7'].inputs.text = prompts.negative;
+      workflow['3'].inputs.seed = Math.floor(Math.random() * 1000000);
+
+      const images = await client.getImages(workflow);
+
+      for (const nodeId of Object.keys(images)) {
+        for (const img of images[nodeId]) {
+          const arrayBuffer = await img.blob.arrayBuffer();
+
+          const outputPath = join(outputDir, img.image.filename);
+          await writeFile(outputPath, Buffer.from(arrayBuffer));
         }
-      } catch (error) {
-        console.error("Error generating image(s): " + error);
       }
     }
-
-    const filesArray = await getAllS3Files(r2_client, s3Opts);
-    const filesURLArray = filesArray.map((file) => config.r2_url_prefix + file);
-    const success = await uploadObject(JSON.stringify(filesURLArray), prompt.id + "/latest.json");
-    if (success) {
-      console.log("Successfully uploaded file list to R2.");
-    } else {
-      console.log("Failed to upload results to R2.");
-    }
   }
 
-  // Create main json file
-  const mainJSON = [];
-  for (const prompt of presets) {
-    const s3Opts = { Bucket: config.r2_bucket, Prefix: prompt.id + "/image"};
-    const filesArray = await getAllS3Files(r2_client, s3Opts);
-    const filesURLArray = filesArray.map((file) => config.r2_url_prefix + file);
-    const randomElement = filesURLArray[Math.floor(Math.random() * filesURLArray.length)];
-    mainJSON.push({ id: prompt.id, name: prompt.name, preview: randomElement, images: config.r2_url_prefix + prompt.id + "/latest.json" });
-  }
-  const success = await uploadObject(JSON.stringify(mainJSON), "latest.json");
-    if (success) {
-      console.log("Successfully uploaded file list to R2.");
-    } else {
-      console.log("Failed to upload results to R2.");
-    }
-
+  await client.disconnect();
 };
+
+// const main = async () => {
+//   // Generate images
+//   for (const prompt of presets) {
+//     console.log("Generating images for " + prompt.name)
+
+//     const s3Opts = { Bucket: config.r2_bucket, Prefix: prompt.id + "/image"};
+//     const checkFilesArray = await getAllS3Files(r2_client, s3Opts);
+//     if (checkFilesArray.length > 20) {
+//       console.log("Skipping prompt " + prompt.name + " because it already has 20 images.");
+//       continue;
+//     }
+
+//     for (var i = 0; i < 10; i++) {
+//       const output = createRandomPromptFromTemplate(prompt);
+//       console.log("Generated prompt: " + output);
+
+//       const params = prompt.params;
+//       params.n = 3;
+//       try {
+//         const results = await generateImages(output, prompt.models, params);
+//         for (const result of results) {
+//           const success = await uploadImage(result, prompt.id);
+//           if (success) { console.log("Saved image " + result.id ); }
+//         }
+//       } catch (error) {
+//         console.error("Error generating image(s): " + error);
+//       }
+//     }
+
+//     const filesArray = await getAllS3Files(r2_client, s3Opts);
+//     const filesURLArray = filesArray.map((file) => config.r2_url_prefix + file);
+//     const success = await uploadObject(JSON.stringify(filesURLArray), prompt.id + "/latest.json");
+//     if (success) {
+//       console.log("Successfully uploaded file list to R2.");
+//     } else {
+//       console.log("Failed to upload results to R2.");
+//     }
+//   }
+
+//   // Create main json file
+//   const mainJSON = [];
+//   for (const prompt of presets) {
+//     const s3Opts = { Bucket: config.r2_bucket, Prefix: prompt.id + "/image"};
+//     const filesArray = await getAllS3Files(r2_client, s3Opts);
+//     const filesURLArray = filesArray.map((file) => config.r2_url_prefix + file);
+//     const randomElement = filesURLArray[Math.floor(Math.random() * filesURLArray.length)];
+//     mainJSON.push({ id: prompt.id, name: prompt.name, preview: randomElement, images: config.r2_url_prefix + prompt.id + "/latest.json" });
+//   }
+//   const success = await uploadObject(JSON.stringify(mainJSON), "latest.json");
+//     if (success) {
+//       console.log("Successfully uploaded file list to R2.");
+//     } else {
+//       console.log("Failed to upload results to R2.");
+//     }
+
+// };
 
 async function uploadObject(string, key) {
   // Convert object to json string, and upload to S3 as "latest.json"
@@ -100,11 +161,11 @@ const getAllS3Files = async (client, s3Opts) => {
 
 function createRandomPromptFromTemplate(prompt) {
   const template_data = {};
-    for (const key in prompt.template_data) {
-      const value = prompt.template_data[key];
-      template_data[key] = value[Math.floor(Math.random() * value.length)];
-    }
-    return Mustache.render(prompt.prompt_template, template_data);
+  for (const key in prompt.template_data) {
+    const value = prompt.template_data[key];
+    template_data[key] = value[Math.floor(Math.random() * value.length)];
+  }
+  return { positive: Mustache.render(prompt.positive_prompt_template, template_data), negative: Mustache.render(prompt.negative_prompt_template, template_data) };
 }
 
 async function uploadImage(imageObject, id) {
@@ -113,7 +174,7 @@ async function uploadImage(imageObject, id) {
     fs.mkdirSync("images");
   }
 
-  //c heck if /images/id directory exists and create it if it does not exist
+  // check if /images/id directory exists and create it if it does not exist
   if (!fs.existsSync("images/" + id)) {
     fs.mkdirSync("images/" + id);
   }
@@ -165,9 +226,9 @@ async function generateImages(prompt, models, params) {
   });
   console.log(
     "Generation Submitted, ID: " +
-      generation.id +
-      ", kudos cost: " +
-      generation.kudos
+    generation.id +
+    ", kudos cost: " +
+    generation.kudos
   );
 
   while (true) {

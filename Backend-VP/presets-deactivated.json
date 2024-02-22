@@ -40,5 +40,387 @@
             "denoising_strength": 0.75,
             "facefixer_strength": 0.75
         }
+    },
+    {
+        "id": "smoke-water",
+        "name": "Smoke & Water",
+        "prompt_template": "smoke spiral in a dark waters, lace satin silky flowing smoke like clouds and smoke, wild windy water, perfect proportion, detailed, intricate details, elaborate, centered, in frame, dramatic lighting, trending on cgsociety, intricate, epic, {{color_scheme}} ### person, people, woman, man, human",
+        "template_data": {
+            "color_scheme": [
+                "",
+                "red, yellow",
+                "blue, green",
+                "yellow, green",
+                "red, blue",
+                "orange, purple",
+                "red",
+                "orange",
+                "yellow",
+                "green",
+                "blue",
+                "purple",
+                "cool colors",
+                "warm colors",
+                "muted colors",
+                "grayscale",
+                "black and white"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 2,
+            "hires_fix": false,
+            "clip_skip": 1,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    },
+    {
+        "id": "vibrant-landscapes",
+        "name": "Vibrant Landscapes",
+        "prompt_template": "{{subject}}, painted, intricate, volumetric lighting, beautiful, rich deep colors masterpiece, sharp focus, ultra detailed, in the style of dan mumford and marc simonetti, astrophotography, Dreamyvibes Artstyle ### NSFW, nude, naked, porn, ugly, cleavage, extra hands, extra drawn feet, Extra fingers, poorly drawn face, fused fingers, long neck, big contrast, contrast white burn, white spots overexposed, over saturated, extra limbs, blurry, bad anatomy, blurred, watermark, grainy, signature, cut off, closed eyes, text, logo, fake 3D rendered image",
+        "template_data": {
+            "subject": [
+                "fields",
+                "mountains",
+                "plains",
+                "desert",
+                "martian planet landscape",
+                "forest",
+                "tropical rainforest",
+                "savanna",
+                "taiga"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 5,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "287607",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ],
+            "clip_skip": 2,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    },
+    {
+        "id": "cozyhomes-v2",
+        "name": "Cozy Homes",
+        "prompt_template": "Thomas Kinkade Style - Thomas Kinkade style portrait of {{subject}}, {{extras}}. Highly detailed",
+        "template_data": {
+            "subject": [
+                "a cottage in a shaded forest",
+                "a log cabin in the woods",
+                "a log cabin in the mountains",
+                "a cottage in the mountains"
+            ],
+            "extras": [
+                "stream of water",
+                "deer grazing nearby",
+                "rose garden outside",
+                "starry night",
+                "raining outside"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "cfg_scale": 2,
+            "sampler_name": "k_dpmpp_sde",
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "height": 576,
+            "width": 1024,
+            "steps": 30,
+            "karras": true,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "154238",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "135867",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ]
+        }
+    },
+    {
+        "id": "snowylandscapes",
+        "name": "Snowy Landscapes",
+        "prompt_template": "by Naoko Takeuchi and Igor Zenin in the style of Michal Karcz ### low quality, bad anatomy, mess, bizarre, cartoon, painting, illustration, deviant",
+        "template_data": {},
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "cfg_scale": 2,
+            "sampler_name": "k_dpmpp_sde",
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "height": 576,
+            "width": 1024,
+            "steps": 30,
+            "karras": true,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "152309",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "283697",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "293991",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ]
+        }
+    },
+    {
+        "id": "watercolor-sl",
+        "name": "Watercolor Still Life",
+        "prompt_template": "Norman Rockwell watercolor painting of {{subject}}, solo, soft colors, bleeding ink, watercolor (medium) ### 3d, photorealistic, sharp focus, nsfw, person, child, human",
+        "template_data": {
+            "subject": [
+                "fruit on a plate",
+                "boquet of flowers in a vase",
+                "beautiful necklace lying in a jewelry box",
+                "a bowl of soup",
+                "a cup of coffee",
+                "a glass of wine",
+                "a loaf of bread",
+                "a bowl of fruit",
+                "rocks and seashells"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "cfg_scale": 2,
+            "sampler_name": "k_dpmpp_sde",
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "height": 576,
+            "width": 1024,
+            "steps": 30,
+            "karras": true,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "132247",
+                    "model": 0.55,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "229061",
+                    "model": 0.5,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ]
+        }
+    },
+    {
+        "id": "moody-sunsets",
+        "name": "Moody Sunsets",
+        "prompt_template": "landscape, {{subject}}, scary sunset by kim jung gi, caspar david friedrich, layered composition, complex composition, magnificent masterpiece, stunning, deep bright colors, intricate line-work, fear, noir ### person, people, man, woman, child, girl, boy, text, logo",
+        "template_data": {
+            "subject": [
+                "fields",
+                "mountains",
+                "plains",
+                "desert",
+                "martian planet landscape",
+                "tropical rainforest",
+                "savanna",
+                "taiga",
+                "forest",
+                "prairie",
+                "creek",
+                "lake",
+                "beach",
+                "castle",
+                "cabin"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 5,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "152309",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ],
+            "clip_skip": 2,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    },
+    {
+        "id": "eastern-dragons-v2",
+        "name": "Eastern Dragons",
+        "prompt_template": "mysterious silhouette painting, watercolor and liquid graphite, one eastern dragon made of smoke in the clouds, intimate small scene, minimalist background, muted {{color_scheme}} colors, 8k, highly detailed, luminous, stylized ink painting with faded ink wash, on parchment, linquivera, comic book ### (person, woman, man, child, people:1.2)",
+        "template_data": {
+            "color_scheme": [
+                "black and red",
+                "gold and red",
+                "black and blue",
+                "green and purple",
+                "red and orange",
+                "red and orange and green"
+            ]
+        },
+        "models": [
+            "AlbedoBase XL (SDXL)"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 5,
+            "hires_fix": false,
+            "loras": [
+                {
+                    "name": "318677",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "152309",
+                    "model": 0.8,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "305491",
+                    "model": 0.5,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "283024",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ],
+            "clip_skip": 1,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
+    },
+    {
+        "id": "stars-nebulae",
+        "name": "Stars & Nebulae",
+        "prompt_template": "clouds, universe, nebula, star cluster, galaxy, starry sky, SyFyEye1 ### sketches,(worst quality:2),(low quality:2),(normal quality:2), lowres, Local perspective, signature, text, words",
+        "template_data": {},
+        "models": [
+            "Deliberate"
+        ],
+        "params": {
+            "steps": 30,
+            "post_processing": [
+                "RealESRGAN_x4plus"
+            ],
+            "cfg_scale": 5,
+            "hires_fix": true,
+            "loras": [
+                {
+                    "name": "259078",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                },
+                {
+                    "name": "87153",
+                    "model": 1,
+                    "clip": 1,
+                    "is_version": true
+                }
+            ],
+            "clip_skip": 1,
+            "width": 1024,
+            "image_is_control": false,
+            "height": 576,
+            "tiling": false,
+            "karras": true,
+            "sampler_name": "k_dpmpp_sde",
+            "denoising_strength": 0.75,
+            "facefixer_strength": 0.75
+        }
     }
 ]

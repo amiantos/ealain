@@ -18,11 +18,8 @@
   "homepage": "https://github.com/amiantos/ealain#readme",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.352.0",
-    "@zeldafan0225/ai_horde": "^5.0.4",
     "comfy-ui-client": "^0.1.2",
     "mustache": "^4.2.0",
-    "openai": "^3.3.0",
-    "request": "^2.88.2",
-    "sharp": "^0.32.1"
+    "sharp": "^0.32.6"
   }
 }

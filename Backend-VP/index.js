@@ -17,7 +17,7 @@ const r2_client = new S3Client({
   },
 });
 
-const totalImages = 50;
+const totalImages = 100;
 const serverAddress = "127.0.0.1:8188";
 const clientId = "ealain-vp-generator";
 
@@ -25,7 +25,7 @@ const main = async () => {
   createImagesFolder();
 
   await generateImages();
-  
+
   await uploadImages();
 
   console.log("I am finished!");
@@ -114,11 +114,11 @@ async function generateImages() {
 
     var batch_size = 5;
     var repetitions = totalImages / batch_size;
-    if (Object.keys(prompt.template_data).length === 0) {
-      repetitions = 1;
-      batch_size = totalImages;
-      console.log("Using high batch_size for prompt " + prompt.name);
-    }
+    // if (Object.keys(prompt.template_data).length === 0) {
+    //   repetitions = 1;
+    //   batch_size = totalImages;
+    //   console.log("Using high batch_size for prompt " + prompt.name);
+    // }
 
     // check if /images/id directory exists and create it if it does not exist
     if (!fs.existsSync("images/" + prompt.id)) {

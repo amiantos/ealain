@@ -25,11 +25,14 @@ const main = async () => {
   createImagesFolder();
 
   await generateImages();
+  
+  await uploadImages();
 
-  // await uploadImages();
+  console.log("I am finished!");
 };
 
 async function uploadImages() {
+  console.log("Uploading images to r2...");
   const mainJSON = [];
   for (const prompt of presets) {
     const filesArray = fs.readdirSync(`images/${prompt.id}`);
@@ -57,6 +60,7 @@ async function uploadImages() {
         ACL: "public-read",
       });
       try {
+        console.log("Uploading " + file + " to r2...");
         await r2_client.send(command);
       } catch (err) {
         console.error(err);
@@ -73,6 +77,7 @@ async function uploadImages() {
     ACL: "public-read",
   });
   try {
+    console.log("Uploading latest.json to r2...");
     await r2_client.send(command);
   } catch (err) {
     console.error(err);
@@ -153,7 +158,7 @@ async function generateImages() {
             .toBuffer();
           const outputPath = join(
             outputDir,
-            `image-${seed}-${index.toString().padStart(3, "0")}.webp`
+            `image-${prompt.id}-${seed}-${index.toString().padStart(3, "0")}.webp`
           );
           writeFile(outputPath, Buffer.from(webpBuffer));
         }

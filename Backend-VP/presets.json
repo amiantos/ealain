@@ -68,8 +68,8 @@
     {
         "id": "dark-abstraction",
         "name": "Dark Abstraction",
-        "positive_prompt_template": "cubist, expressionist art, in the style of kazimir malevich, visible brush strokes, contrast, emotional, exaggerated forms, multiple colors, high energy, {{color_scheme}} colors",
-        "negative_prompt_template": "face, eyes, human, figure",
+        "positive_prompt_template": "cubist, expressionist art, in the style of kazimir malevich, visible brush strokes, contrast, emotional, exaggerated forms, multiple colors, high energy, ({{color_scheme}} colors)",
+        "negative_prompt_template": "face, eyes, human, figure, (people: 1.2), person, man, woman",
         "template_data": {
             "color_scheme": [
                 "black and red",
@@ -78,17 +78,15 @@
                 "black and purple",
                 "black and green",
                 "black and yellow",
-                "black and indigo",
-                "black and crimson",
-                "black and charcoal gray",
-                "black and midnight blue",
-                "black and deep purple",
-                "black and forest green",
-                "black and amber",
-                "black and sapphire blue",
-                "black and burgundy",
-                "black and moss green",
-                "black and plum"
+                "black, red, teal",
+                "black, orange, lavender",
+                "black, yellow, indigo",
+                "black, green, coral",
+                "black, blue, mustard",
+                "black, violet, olive",
+                "black, white, maroon",
+                "black, turquoise, peach",
+                "black, magenta, sage green"
             ]
         }
     }

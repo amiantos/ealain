@@ -34,7 +34,7 @@ async function generateImages() {
   const client = new ComfyUIClient(serverAddress, clientId);
   await client.connect();
   for (const prompt of presets) {
-    if (prompt.id != "dark-abstraction") continue;
+    // if (prompt.id != "ink-and-watercolor") continue;
 
     console.log("Generating images for " + prompt.name);
 
@@ -42,8 +42,8 @@ async function generateImages() {
       fs.readFileSync(`./workflows/${prompt.id}-api.json`)
     );
 
-    var batch_size = 5;
-    var repetitions = totalImages / batch_size;
+    var batch_size = 3;
+    var repetitions = Math.floor(totalImages / batch_size);
 
     if (!fs.existsSync("images/" + prompt.id)) {
       fs.mkdirSync("images/" + prompt.id);
@@ -54,7 +54,7 @@ async function generateImages() {
     for (const file of files) {
       fs.unlinkSync(join(outputDir, file));
     }
-
+    
     for (var i = 0; i < repetitions; i++) {
       var prompts = createRandomPromptFromTemplate(prompt);
       var seed = Math.floor(Math.random() * 1000000000000000);

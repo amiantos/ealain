@@ -65,7 +65,7 @@ const main = async () => {
     "black and white ",
   ]
 
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 50; i++) {
     prompts.push("Abstract " + styles[Math.floor(Math.random() * styles.length)] + "art based on the text: \"" + entries[Math.floor(Math.random() * entries.length)] + "\" " + colorSchemes[Math.floor(Math.random() * colorSchemes.length)] + "### " + negativePrompts[Math.floor(Math.random() * negativePrompts.length)]);
   }
 

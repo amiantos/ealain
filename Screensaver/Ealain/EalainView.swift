@@ -35,7 +35,19 @@ class EalainView: ScreenSaverView {
         fadeLabelOut()
 
         fetchFreshImageUrls(firstLaunch: true)
+        
+        DistributedNotificationCenter.default.addObserver(self,
+            selector: #selector(EalainView.willStop(_:)),
+                    name: Notification.Name("com.apple.screensaver.willstop"), object: nil)
     }
+    
+    @objc func willStop(_ aNotification: Notification) {
+           print("🖼️ 📢📢📢 willStop")
+           if #available(macOS 14.0, *) {
+               exit(0)
+           }
+           self.stopAnimation()
+       }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -80,6 +92,8 @@ class EalainView: ScreenSaverView {
             urlRefreshCount = 0
         }
     }
+    
+    
 
     @objc fileprivate func fadeLabelOut() {
         print("Fading label out...")

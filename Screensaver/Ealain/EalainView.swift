@@ -2,12 +2,14 @@ import Foundation
 import ScreenSaver
 
 class EalainView: ScreenSaverView {
+    
+    let framesPerSecond: Int = 30
 
     var count: Int = 0
     var urlRefreshCount: Int = 0
 
-    let imageView1 = EalainImageView()
-    let imageView2 = EalainImageView()
+    let bottomImageView = EalainImageView()
+    let topImageView = EalainImageView()
 
     let loadingLabelView = NSView()
     let loadingLabel = NSTextField(labelWithString: "Ealain requires internet access to function. Please wait...")
@@ -19,20 +21,23 @@ class EalainView: ScreenSaverView {
 
     override init?(frame: CGRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
-        self.animationTimeInterval = 1 / 30.0
+        
+        Log.logLevel = .debug
+        
+        self.animationTimeInterval = TimeInterval(1 / framesPerSecond)
 
         addSubview(loadingLabelView)
         loadingLabelView.wantsLayer = true
         loadingLabelView.addSubview(loadingLabel)
-        addSubview(imageView1)
-        addSubview(imageView2)
-        imageView2.layer?.opacity = 0
-        imageView1.layer?.opacity = 0
+        addSubview(bottomImageView)
+        addSubview(topImageView)
+        topImageView.layer?.opacity = 0
+        bottomImageView.layer?.opacity = 0
 
         loadingLabel.textColor = .white
         loadingLabel.sizeToFit()
 
-        fadeLabelOut()
+        setupLabelAnimation()
 
         fetchFreshImageUrls(firstLaunch: true)
         
@@ -40,14 +45,6 @@ class EalainView: ScreenSaverView {
             selector: #selector(EalainView.willStop(_:)),
                     name: Notification.Name("com.apple.screensaver.willstop"), object: nil)
     }
-    
-    @objc func willStop(_ aNotification: Notification) {
-           print("🖼️ 📢📢📢 willStop")
-           if #available(macOS 14.0, *) {
-               exit(0)
-           }
-           self.stopAnimation()
-       }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -71,8 +68,8 @@ class EalainView: ScreenSaverView {
         squareFrame.size = NSSize(width: window?.frame.width ?? 200, height: window?.frame.height ?? 200)
         squareFrame.origin.x = 0
         squareFrame.origin.y = 0
-        imageView1.frame = squareFrame
-        imageView2.frame = squareFrame
+        bottomImageView.frame = squareFrame
+        topImageView.frame = squareFrame
         loadingLabelView.frame = squareFrame
 
     }
@@ -81,22 +78,28 @@ class EalainView: ScreenSaverView {
         count += 1
         urlRefreshCount += 1
 
-        if count == 20 * 30 {
-            print("Updating...")
+        if count == 20 * framesPerSecond {
             swapImageViews()
             count = 0
         }
 
-        if urlRefreshCount == 108000 {
+        if urlRefreshCount == 3600 * framesPerSecond {
             fetchFreshImageUrls()
             urlRefreshCount = 0
         }
     }
     
     
+    @objc fileprivate func willStop(_ aNotification: Notification) {
+        Log.debug("🖼️ 📢📢📢 willStop")
+           if #available(macOS 14.0, *) {
+               exit(0)
+           }
+           self.stopAnimation()
+       }
 
-    @objc fileprivate func fadeLabelOut() {
-        print("Fading label out...")
+    fileprivate func setupLabelAnimation() {
+        Log.debug("Fading label out...")
         let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
         animation.fromValue = 1.0
         animation.toValue = 0.2
@@ -110,7 +113,7 @@ class EalainView: ScreenSaverView {
     }
 
     fileprivate func fetchFreshImageUrls(firstLaunch: Bool = false) {
-        print("Fetching fresh image URLs...")
+        Log.debug("Fetching fresh image URLs...")
         DispatchQueue.global(qos: .background).async {
             if let data = try? Data(contentsOf: URL(string: "https://ealain.s3.amazonaws.com/latest.json")!), let urls = try? JSONDecoder().decode(
                 [String].self,
@@ -127,16 +130,17 @@ class EalainView: ScreenSaverView {
     }
 
     fileprivate func swapImageViews() {
-        if imageView2.layer?.opacity ?? 0.0 < 1 {
+        Log.debug("Swapping images...")
+        if topImageView.layer?.opacity ?? 0.0 < 1 {
             let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
             animation.fromValue = 0.0
             animation.toValue = 1.0
             animation.duration = 5.0
             animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             animation.delegate = self
-            imageView2.layer?.opacity = 1
-            imageView2.layer?.add(animation, forKey: "fade")
-            print("Displaying Image 2")
+            topImageView.layer?.opacity = 1
+            topImageView.layer?.add(animation, forKey: "fade")
+            Log.debug("Displaying Top Image")
         } else {
             let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
             animation.fromValue = 1.0
@@ -144,19 +148,19 @@ class EalainView: ScreenSaverView {
             animation.duration = 5.0
             animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             animation.delegate = self
-            imageView2.layer?.opacity = 0
-            imageView2.layer?.add(animation, forKey: "fade")
-            print("Hiding Image 2")
+            topImageView.layer?.opacity = 0
+            topImageView.layer?.add(animation, forKey: "fade")
+            Log.debug("Hiding Top Image")
         }
     }
 
     fileprivate func swapHiddenImage() {
         if recentUrls.count == urls.count {
-            print("Image list exahusted, pruning.")
+            Log.debug("Image list exahusted, pruning recent urls by half...")
             recentUrls.removeFirst(recentUrls.count/2)
         }
 
-        if imageView2.layer?.opacity == 1.0 || imageView1.layer?.opacity == 0.0 {
+        if topImageView.layer?.opacity == 1.0 || bottomImageView.layer?.opacity == 0.0 {
             while true {
                 guard let newUrl = urls.randomElement() else { break }
                 if recentUrls.firstIndex(of: newUrl) == nil {
@@ -164,11 +168,11 @@ class EalainView: ScreenSaverView {
                     break
                 }
             }
-            imageView1.loadImage(url: currentUrl1)
+            bottomImageView.loadImage(url: currentUrl1)
             recentUrls.append(currentUrl1)
-            print("Swapped Image 1")
+            Log.debug("Swapped Bottom Image")
 
-            if imageView1.layer?.opacity == 0.0 {
+            if bottomImageView.layer?.opacity == 0.0 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                     let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
                     animation.fromValue = 0.0
@@ -176,12 +180,12 @@ class EalainView: ScreenSaverView {
                     animation.duration = 5.0
                     animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                     animation.delegate = self
-                    self.imageView1.layer?.opacity = 1
-                    self.imageView1.layer?.add(animation, forKey: "fade")
-                    print("Displaying Image 1")
+                    self.bottomImageView.layer?.opacity = 1
+                    self.bottomImageView.layer?.add(animation, forKey: "fade")
+                    Log.debug("Displaying Bottom Image")
                 }
             }
-        } else if imageView2.layer?.opacity == 0.0 {
+        } else if topImageView.layer?.opacity == 0.0 {
             while true {
                 guard let newUrl = urls.randomElement() else { break }
                 if recentUrls.firstIndex(of: newUrl) == nil {
@@ -189,9 +193,9 @@ class EalainView: ScreenSaverView {
                     break
                 }
             }
-            imageView2.loadImage(url: currentUrl2)
+            topImageView.loadImage(url: currentUrl2)
             recentUrls.append(currentUrl2)
-            print("Swapped Image 2")
+            Log.debug("Swapped Top Image")
         }
     }
 }

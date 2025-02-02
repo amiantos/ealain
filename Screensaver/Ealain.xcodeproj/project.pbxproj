@@ -18,6 +18,12 @@
 		44198C202A3BC6EB004F22D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 44198C112A3A6D78004F22D5 /* Assets.xcassets */; };
 		44B823552D4F3662007FA594 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823542D4F3662007FA594 /* Logging.swift */; };
 		44B823562D4F3662007FA594 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823542D4F3662007FA594 /* Logging.swift */; };
+		44B8235B2D4F3B75007FA594 /* HordeDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823592D4F3B75007FA594 /* HordeDefaults.swift */; };
+		44B8235C2D4F3B75007FA594 /* HordeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823582D4F3B75007FA594 /* HordeModels.swift */; };
+		44B8235D2D4F3B75007FA594 /* HordeAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823572D4F3B75007FA594 /* HordeAPI.swift */; };
+		44B8235E2D4F3B75007FA594 /* HordeDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823592D4F3B75007FA594 /* HordeDefaults.swift */; };
+		44B8235F2D4F3B75007FA594 /* HordeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823582D4F3B75007FA594 /* HordeModels.swift */; };
+		44B823602D4F3B75007FA594 /* HordeAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823572D4F3B75007FA594 /* HordeAPI.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +37,9 @@
 		44198C1A2A3A6D99004F22D5 /* PreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewController.swift; sourceTree = "<group>"; };
 		44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EalainImageView.swift; sourceTree = "<group>"; };
 		44B823542D4F3662007FA594 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
+		44B823572D4F3B75007FA594 /* HordeAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeAPI.swift; sourceTree = "<group>"; };
+		44B823582D4F3B75007FA594 /* HordeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeModels.swift; sourceTree = "<group>"; };
+		44B823592D4F3B75007FA594 /* HordeDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				44198C052A3A6C8B004F22D5 /* EalainView.swift */,
+				44B8235A2D4F3B75007FA594 /* Horde API */,
 				44B823542D4F3662007FA594 /* Logging.swift */,
 				44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */,
 			);
@@ -89,6 +99,16 @@
 				44198C1A2A3A6D99004F22D5 /* PreviewViewController.swift */,
 			);
 			path = Preview;
+			sourceTree = "<group>";
+		};
+		44B8235A2D4F3B75007FA594 /* Horde API */ = {
+			isa = PBXGroup;
+			children = (
+				44B823572D4F3B75007FA594 /* HordeAPI.swift */,
+				44B823582D4F3B75007FA594 /* HordeModels.swift */,
+				44B823592D4F3B75007FA594 /* HordeDefaults.swift */,
+			);
+			path = "Horde API";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -205,6 +225,9 @@
 				44198C062A3A6C8B004F22D5 /* EalainView.swift in Sources */,
 				44B823562D4F3662007FA594 /* Logging.swift in Sources */,
 				44198C1E2A3A6E66004F22D5 /* EalainImageView.swift in Sources */,
+				44B8235B2D4F3B75007FA594 /* HordeDefaults.swift in Sources */,
+				44B8235C2D4F3B75007FA594 /* HordeModels.swift in Sources */,
+				44B8235D2D4F3B75007FA594 /* HordeAPI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -215,6 +238,9 @@
 				44198C1C2A3A6DB1004F22D5 /* EalainView.swift in Sources */,
 				44B823552D4F3662007FA594 /* Logging.swift in Sources */,
 				44198C1F2A3A6E66004F22D5 /* EalainImageView.swift in Sources */,
+				44B8235E2D4F3B75007FA594 /* HordeDefaults.swift in Sources */,
+				44B8235F2D4F3B75007FA594 /* HordeModels.swift in Sources */,
+				44B823602D4F3B75007FA594 /* HordeAPI.swift in Sources */,
 				44198C102A3A6D76004F22D5 /* AppDelegate.swift in Sources */,
 				44198C1B2A3A6D99004F22D5 /* PreviewViewController.swift in Sources */,
 			);

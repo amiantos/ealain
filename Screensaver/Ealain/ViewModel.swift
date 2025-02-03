@@ -58,7 +58,9 @@ extension EalainView {
 
             if frameCounter == 20 * framesPerSecond {
                 Log.debug("20 seconds has passed")
-                self.delegate?.swapImageViews()
+                if !urls.isEmpty {
+                    self.delegate?.swapImageViews()
+                }
                 frameCounter = 0
             }
 
@@ -115,7 +117,7 @@ extension EalainView {
                 let imagesFolderURL = try getImagesFolderURL()
 
                 // Determine file name and path
-                let fileName = url.lastPathComponent.isEmpty ? UUID().uuidString + ".webp" : url.lastPathComponent
+                let fileName = "\(Int(Date().timeIntervalSince1970)).webp"
                 let fileURL = imagesFolderURL.appendingPathComponent(fileName)
 
                 // Write data to file
@@ -124,12 +126,15 @@ extension EalainView {
                 Log.debug("Image saved to: \(fileURL.path)")
                 
                 // Update URLs (assuming `urls` is globally accessible)
-                urls.append(fileURL.absoluteString)
-
-//                // Dispatch UI update on the main thread
-//                await MainActor.run {
-//                    self.delegate?.swapHiddenImage()
-//                }
+                if !urls.isEmpty {
+                    urls.append(fileURL.absoluteString)
+                } else {
+                    urls.append(fileURL.absoluteString)
+                    DispatchQueue.main.async {
+                        self.delegate?.swapHiddenImage()
+                    }
+                }
+                
             } catch {
                 print("Error saving image: \(error)")
             }
@@ -144,7 +149,7 @@ extension EalainView {
                 let fileURLs = try fileManager.contentsOfDirectory(at: imagesFolderURL, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
 
                 // Convert to an array of string paths
-                return fileURLs.map { $0.absoluteString }
+                return fileURLs.map { $0.absoluteString }.sorted()
             } catch {
                 throw NSError(domain: "FileManagerError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch image URLs: \(error)"])
             }
@@ -154,6 +159,7 @@ extension EalainView {
             var currentRequestUUID: UUID?
             
             do {
+                delegate?.updateStatusLabel("Submitting new image request to the AI Horde...")
                 let requestResponse = try await hordeAPI.submitRequest(apiKey: hordeApiKey, request: HordeRequest(prompt: " ", style: "fb8abfab-e3cd-4790-8460-fe82cc7e44c0"))
                 currentRequestUUID = requestResponse.id
                 Log.debug("New generation request ID: \(String(describing: currentRequestUUID))")

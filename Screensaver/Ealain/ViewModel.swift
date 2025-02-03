@@ -84,6 +84,11 @@ extension EalainView {
                 } else {
                     delegate?.swapHiddenImage()
                     delegate?.updateStatusLabel("")
+                    if urls.count < 100 {
+                        Task {
+                            await getRandomImage()
+                        }
+                    }
                 }
             } catch {
                 print("Error retrieving image URLs: \(error)")
@@ -134,6 +139,7 @@ extension EalainView {
                         self.delegate?.swapHiddenImage()
                     }
                 }
+                await getRandomImage()
                 
             } catch {
                 print("Error saving image: \(error)")

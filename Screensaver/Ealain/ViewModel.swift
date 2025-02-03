@@ -27,7 +27,7 @@ extension EalainView {
     class ViewModel {
         let hordeAPI: HordeAPI = .init()
         var delegate: ViewModelDelegate?
-        
+
         let hordeApiKey: String = "0000000000"
 
         let framesPerSecond: Int = 30
@@ -72,7 +72,7 @@ extension EalainView {
 
         func start() {
             Log.debug("ViewModel start!")
-            
+
             do {
                 let imageUrls = try getAllImageUrls()
                 print("Image URLs: \(imageUrls)")
@@ -94,20 +94,31 @@ extension EalainView {
                 print("Error retrieving image URLs: \(error)")
             }
         }
-        
+
         func getImagesFolderURL() throws -> URL {
             let fileManager = FileManager.default
-            
-            guard let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-                throw NSError(domain: "FileManagerError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to locate Application Support directory"])
+
+            guard
+                let appSupportURL = fileManager.urls(
+                    for: .applicationSupportDirectory, in: .userDomainMask
+                ).first
+            else {
+                throw NSError(
+                    domain: "FileManagerError", code: 1,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "Failed to locate Application Support directory"
+                    ])
             }
-            
+
             let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain")
-            try fileManager.createDirectory(at: imagesFolderURL, withIntermediateDirectories: true, attributes: nil)
+            try fileManager.createDirectory(
+                at: imagesFolderURL, withIntermediateDirectories: true,
+                attributes: nil)
 
             return imagesFolderURL
         }
-        
+
         func saveImageFromUrlString(_ urlString: String) async {
             guard let url = URL(string: urlString) else {
                 print("Invalid URL: \(urlString)")
@@ -122,14 +133,18 @@ extension EalainView {
                 let imagesFolderURL = try getImagesFolderURL()
 
                 // Determine file name and path
-                let fileName = "\(Int(Date().timeIntervalSince1970)).webp"
+                let timestamp = Int(Date().timeIntervalSince1970)
+                let originalFileName = url.deletingPathExtension().lastPathComponent // Remove extension from original name
+                let fileExtension = url.pathExtension.isEmpty ? "webp" : url.pathExtension // Default to .webp if no extension
+                let fileName = "\(timestamp)-\(originalFileName).\(fileExtension)"
+                
                 let fileURL = imagesFolderURL.appendingPathComponent(fileName)
 
                 // Write data to file
                 try data.write(to: fileURL)
 
                 Log.debug("Image saved to: \(fileURL.path)")
-                
+
                 // Update URLs (assuming `urls` is globally accessible)
                 if !urls.isEmpty {
                     urls.append(fileURL.absoluteString)
@@ -139,124 +154,169 @@ extension EalainView {
                         self.delegate?.swapHiddenImage()
                     }
                 }
-                await getRandomImage()
-                
             } catch {
-                print("Error saving image: \(error)")
+                Log.error("Error saving image: \(error)")
             }
+            return
         }
-        
+
         func getAllImageUrls() throws -> [String] {
             let fileManager = FileManager.default
-            let imagesFolderURL = try getImagesFolderURL() // Reuse the function
+            let imagesFolderURL = try getImagesFolderURL()  // Reuse the function
 
             do {
                 // Get contents of the directory
-                let fileURLs = try fileManager.contentsOfDirectory(at: imagesFolderURL, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+                let fileURLs = try fileManager.contentsOfDirectory(
+                    at: imagesFolderURL, includingPropertiesForKeys: nil,
+                    options: .skipsHiddenFiles)
 
                 // Convert to an array of string paths
                 return fileURLs.map { $0.absoluteString }.sorted()
             } catch {
-                throw NSError(domain: "FileManagerError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch image URLs: \(error)"])
+                throw NSError(
+                    domain: "FileManagerError", code: 2,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "Failed to fetch image URLs: \(error)"
+                    ])
             }
         }
-        
+
         func getRandomImage() async {
             var currentRequestUUID: UUID?
-            
+
             do {
-                delegate?.updateStatusLabel("Submitting new image request to the AI Horde...")
-                let requestResponse = try await hordeAPI.submitRequest(apiKey: hordeApiKey, request: HordeRequest(prompt: " ", style: "fb8abfab-e3cd-4790-8460-fe82cc7e44c0"))
+                delegate?.updateStatusLabel(
+                    "Submitting new image request to the AI Horde...")
+                let requestResponse = try await hordeAPI.submitRequest(
+                    apiKey: hordeApiKey,
+                    request: HordeRequest(
+                        prompt: " ",
+                        style: "fb8abfab-e3cd-4790-8460-fe82cc7e44c0",
+                        params: HordeParams(n: 2)))
                 currentRequestUUID = requestResponse.id
-                Log.debug("New generation request ID: \(String(describing: currentRequestUUID))")
-                delegate?.updateStatusLabel("Submitted new image request to the AI Horde")
+                Log.debug(
+                    "New generation request ID: \(String(describing: currentRequestUUID))"
+                )
+                delegate?.updateStatusLabel(
+                    "Submitted new image request to the AI Horde")
             } catch APIError.requestFailed {
-                delegate?.updateStatusLabel("Unable to communicate with the AI Horde")
+                delegate?.updateStatusLabel(
+                    "Unable to communicate with the AI Horde")
             } catch APIError.requestTimedOut {
-                delegate?.updateStatusLabel("Unable to communicate with the AI Horde")
+                delegate?.updateStatusLabel(
+                    "Unable to communicate with the AI Horde")
             } catch let APIError.invalidResponse(statusCode, content) {
-                Log.error("Received \(statusCode) from AI Horde API. \(content)")
+                Log.error(
+                    "Received \(statusCode) from AI Horde API. \(content)")
                 if statusCode == 429 {
-                    delegate?.updateStatusLabel("The AI Horde is experiencing heavy loads, image generation will resume later.")
+                    delegate?.updateStatusLabel(
+                        "The AI Horde is experiencing heavy loads, image generation will resume later."
+                    )
                 }
             } catch {
                 Log.error("\(error)")
             }
-            
+
             if let requestUUID = currentRequestUUID {
                 var failures = 0
                 while true {
                     do {
-                        let requestResponse = try await hordeAPI.checkRequest(apiKey: hordeApiKey, requestUUID: requestUUID)
+                        let requestResponse = try await hordeAPI.checkRequest(
+                            apiKey: hordeApiKey, requestUUID: requestUUID)
                         Log.debug("\(requestResponse)")
                         if requestResponse.done {
-                            delegate?.updateStatusLabel("Downloading new image...")
-                            let finishedRequestResponse = try await hordeAPI.fetchRequest(apiKey: hordeApiKey, requestUUID: requestUUID)
-                            if let generation = finishedRequestResponse.generations?.first {
-                                Log.debug(generation.img)
-                                await saveImageFromUrlString(generation.img)
-                                delegate?.updateStatusLabel("Storing new image...")
+                            delegate?.updateStatusLabel(
+                                "Downloading new image...")
+                            let finishedRequestResponse =
+                                try await hordeAPI.fetchRequest(
+                                    apiKey: hordeApiKey,
+                                    requestUUID: requestUUID)
+                            if let generations = finishedRequestResponse
+                                .generations
+                            {
+                                delegate?.updateStatusLabel(
+                                    "Storing new images...")
+                                Log.debug(generations)
+                                for generation in generations {
+                                    Log.debug(generation.img)
+                                    await saveImageFromUrlString(generation.img)
+                                }
+                                if urls.count < 100 {
+                                    await getRandomImage()
+                                }
                                 break
                             }
                             break
                         } else {
                             if !requestResponse.isPossible {
-                                delegate?.updateStatusLabel("Request can not be completed as sent.")
+                                delegate?.updateStatusLabel(
+                                    "Request can not be completed as sent.")
                             } else if requestResponse.processing == 0 {
                                 if requestResponse.queuePosition > 0 {
-                                    delegate?.updateStatusLabel("Waiting... (#\(requestResponse.queuePosition) in queue)")
+                                    delegate?.updateStatusLabel(
+                                        "Waiting... (#\(requestResponse.queuePosition) in queue)"
+                                    )
                                 } else {
                                     delegate?.updateStatusLabel("Waiting...")
                                 }
                             } else {
-                                delegate?.updateStatusLabel("Image is generating...")
+                                delegate?.updateStatusLabel(
+                                    "Image is generating...")
                             }
                             try await Task.sleep(nanoseconds: 3_000_000_000)
                         }
                     } catch APIError.requestTimedOut {
-                        delegate?.updateStatusLabel("Unable to communicate with the AI Horde.")
+                        delegate?.updateStatusLabel(
+                            "Unable to communicate with the AI Horde.")
                         break
                     } catch let APIError.invalidResponse(statusCode, content) {
-                        Log.error("Received \(statusCode) from AI Horde API. \(content)")
+                        Log.error(
+                            "Received \(statusCode) from AI Horde API. \(content)"
+                        )
                         failures += 1
                         if failures > 5 {
-                            Log.error("Reached maximum failures, breaking polling loop.")
+                            Log.error(
+                                "Reached maximum failures, breaking polling loop."
+                            )
                             break
                         }
                     } catch {
-                        Log.error("Uknown error occurred when polling horde? \(error)")
+                        Log.error(
+                            "Uknown error occurred when polling horde? \(error)"
+                        )
                         break
                     }
                 }
             }
         }
 
-//        private func fetchFreshImageUrls(firstLaunch: Bool = false) {
-//            Log.debug("Fetching fresh image URLs...")
-//            DispatchQueue.global(qos: .background).async {
-//                if let data = try? Data(
-//                    contentsOf: URL(
-//                        string: "https://ealain.s3.amazonaws.com/latest.json")!),
-//                    let urls = try? JSONDecoder().decode(
-//                        [String].self,
-//                        from: data
-//                    )
-//                {
-//                    self.urls = urls
-//                    if firstLaunch {
-//                        DispatchQueue.main.async {
-//                            self.delegate?.swapHiddenImage()
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        //        private func fetchFreshImageUrls(firstLaunch: Bool = false) {
+        //            Log.debug("Fetching fresh image URLs...")
+        //            DispatchQueue.global(qos: .background).async {
+        //                if let data = try? Data(
+        //                    contentsOf: URL(
+        //                        string: "https://ealain.s3.amazonaws.com/latest.json")!),
+        //                    let urls = try? JSONDecoder().decode(
+        //                        [String].self,
+        //                        from: data
+        //                    )
+        //                {
+        //                    self.urls = urls
+        //                    if firstLaunch {
+        //                        DispatchQueue.main.async {
+        //                            self.delegate?.swapHiddenImage()
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
 
         func getImageUrl() -> String {
             if urls.count == 1 {
                 return urls[0]
             }
-            
+
             if recentUrls.count == urls.count {
                 Log.debug(
                     "Image list exahusted, pruning recent urls by half...")

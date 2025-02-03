@@ -12,6 +12,11 @@ import Foundation
 struct HordeRequest: Codable {
     let prompt: String
     let style: String
+    let params: HordeParams
+}
+
+struct HordeParams: Codable {
+    let n: Int
 }
 
 struct HordeRequestResponse: Codable {

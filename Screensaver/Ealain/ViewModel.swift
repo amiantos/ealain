@@ -34,8 +34,6 @@ extension EalainView {
         var frameCounter: Int = 0
         var urlRefreshCounter: Int = 0
 
-        var currentUrlTop: String = ""
-        var currentUrlBottom: String = ""
         var urls: [String] = []
         var recentUrls: [String] = []
 
@@ -94,34 +92,24 @@ extension EalainView {
             }
         }
 
-        func getImageUrl(for imageType: ImageType) -> String {
+        func getImageUrl() -> String {
             if recentUrls.count == urls.count {
                 Log.debug(
                     "Image list exahusted, pruning recent urls by half...")
                 recentUrls.removeFirst(recentUrls.count / 2)
             }
 
-            if imageType == .bottom {
-                while true {
-                    guard let newUrl = urls.randomElement() else { break }
-                    if recentUrls.firstIndex(of: newUrl) == nil {
-                        currentUrlTop = newUrl
-                        break
-                    }
-                }
-                recentUrls.append(currentUrlTop)
-                return currentUrlTop
-            } else {
-                while true {
-                    guard let newUrl = urls.randomElement() else { break }
-                    if recentUrls.firstIndex(of: newUrl) == nil {
-                        currentUrlBottom = newUrl
-                        break
-                    }
-                }
-                recentUrls.append(currentUrlBottom)
-                return currentUrlBottom
+            guard var newUrl = urls.randomElement() else {
+                fatalError("Failed to fetch a random image URL from the list!")
             }
+
+            while recentUrls.contains(newUrl) {
+                guard let anotherUrl = urls.randomElement() else { break }
+                newUrl = anotherUrl
+            }
+
+            recentUrls.append(newUrl)
+            return newUrl
         }
 
     }

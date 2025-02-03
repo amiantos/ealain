@@ -45,9 +45,9 @@ class EalainView: ScreenSaverView {
             selector: #selector(EalainView.willStop(_:)),
             name: Notification.Name("com.apple.screensaver.willstop"),
             object: nil)
-
-        viewModel.start()
+        
         updateOrientation()
+        viewModel.start()
     }
 
     required init?(coder: NSCoder) {
@@ -110,29 +110,28 @@ extension EalainView: EalainView.ViewModelDelegate {
     }
 
     internal func swapHiddenImage() {
-        if topImageView.layer?.opacity == 1.0
-            || bottomImageView.layer?.opacity == 0.0
-        {
-            bottomImageView.loadImage(url: viewModel.getImageUrl(for: .bottom))
+        if bottomImageView.layer?.opacity == 0.0 {
+            bottomImageView.loadImage(url: viewModel.getImageUrl())
             Log.debug("Swapped Bottom Image")
 
-            if bottomImageView.layer?.opacity == 0.0 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                    let animation = CABasicAnimation(
-                        keyPath: #keyPath(CALayer.opacity))
-                    animation.fromValue = 0.0
-                    animation.toValue = 1.0
-                    animation.duration = 5.0
-                    animation.timingFunction = CAMediaTimingFunction(
-                        name: .easeInEaseOut)
-                    animation.delegate = self
-                    self.bottomImageView.layer?.opacity = 1
-                    self.bottomImageView.layer?.add(animation, forKey: "fade")
-                    Log.debug("Displaying Bottom Image")
-                }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                let animation = CABasicAnimation(
+                    keyPath: #keyPath(CALayer.opacity))
+                animation.fromValue = 0.0
+                animation.toValue = 1.0
+                animation.duration = 5.0
+                animation.timingFunction = CAMediaTimingFunction(
+                    name: .easeInEaseOut)
+                animation.delegate = self
+                self.bottomImageView.layer?.opacity = 1
+                self.bottomImageView.layer?.add(animation, forKey: "fade")
+                Log.debug("Displaying Bottom Image")
             }
+        } else if topImageView.layer?.opacity == 1.0 {
+            bottomImageView.loadImage(url: viewModel.getImageUrl())
+            Log.debug("Swapped Bottom Image")
         } else if topImageView.layer?.opacity == 0.0 {
-            topImageView.loadImage(url: viewModel.getImageUrl(for: .top))
+            topImageView.loadImage(url: viewModel.getImageUrl())
             Log.debug("Swapped Top Image")
         }
     }

@@ -16,12 +16,12 @@
 		44198C1E2A3A6E66004F22D5 /* EalainImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */; };
 		44198C1F2A3A6E66004F22D5 /* EalainImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */; };
 		44198C202A3BC6EB004F22D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 44198C112A3A6D78004F22D5 /* Assets.xcassets */; };
+		4468ABE32D508EBA009559B6 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4468ABE22D508EB5009559B6 /* ViewModel.swift */; };
+		4468ABE42D508EBA009559B6 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4468ABE22D508EB5009559B6 /* ViewModel.swift */; };
 		44B823552D4F3662007FA594 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823542D4F3662007FA594 /* Logging.swift */; };
 		44B823562D4F3662007FA594 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823542D4F3662007FA594 /* Logging.swift */; };
-		44B8235B2D4F3B75007FA594 /* HordeDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823592D4F3B75007FA594 /* HordeDefaults.swift */; };
 		44B8235C2D4F3B75007FA594 /* HordeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823582D4F3B75007FA594 /* HordeModels.swift */; };
 		44B8235D2D4F3B75007FA594 /* HordeAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823572D4F3B75007FA594 /* HordeAPI.swift */; };
-		44B8235E2D4F3B75007FA594 /* HordeDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823592D4F3B75007FA594 /* HordeDefaults.swift */; };
 		44B8235F2D4F3B75007FA594 /* HordeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823582D4F3B75007FA594 /* HordeModels.swift */; };
 		44B823602D4F3B75007FA594 /* HordeAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823572D4F3B75007FA594 /* HordeAPI.swift */; };
 /* End PBXBuildFile section */
@@ -36,10 +36,10 @@
 		44198C162A3A6D78004F22D5 /* Preview.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Preview.entitlements; sourceTree = "<group>"; };
 		44198C1A2A3A6D99004F22D5 /* PreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewController.swift; sourceTree = "<group>"; };
 		44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EalainImageView.swift; sourceTree = "<group>"; };
+		4468ABE22D508EB5009559B6 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		44B823542D4F3662007FA594 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		44B823572D4F3B75007FA594 /* HordeAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeAPI.swift; sourceTree = "<group>"; };
 		44B823582D4F3B75007FA594 /* HordeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeModels.swift; sourceTree = "<group>"; };
-		44B823592D4F3B75007FA594 /* HordeDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				44198C052A3A6C8B004F22D5 /* EalainView.swift */,
+				4468ABE22D508EB5009559B6 /* ViewModel.swift */,
 				44B8235A2D4F3B75007FA594 /* Horde API */,
 				44B823542D4F3662007FA594 /* Logging.swift */,
 				44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */,
@@ -106,7 +107,6 @@
 			children = (
 				44B823572D4F3B75007FA594 /* HordeAPI.swift */,
 				44B823582D4F3B75007FA594 /* HordeModels.swift */,
-				44B823592D4F3B75007FA594 /* HordeDefaults.swift */,
 			);
 			path = "Horde API";
 			sourceTree = "<group>";
@@ -167,7 +167,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					44198BF82A3A6BB7004F22D5 = {
 						CreatedOnToolsVersion = 14.3;
@@ -225,8 +225,8 @@
 				44198C062A3A6C8B004F22D5 /* EalainView.swift in Sources */,
 				44B823562D4F3662007FA594 /* Logging.swift in Sources */,
 				44198C1E2A3A6E66004F22D5 /* EalainImageView.swift in Sources */,
-				44B8235B2D4F3B75007FA594 /* HordeDefaults.swift in Sources */,
 				44B8235C2D4F3B75007FA594 /* HordeModels.swift in Sources */,
+				4468ABE32D508EBA009559B6 /* ViewModel.swift in Sources */,
 				44B8235D2D4F3B75007FA594 /* HordeAPI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -238,10 +238,10 @@
 				44198C1C2A3A6DB1004F22D5 /* EalainView.swift in Sources */,
 				44B823552D4F3662007FA594 /* Logging.swift in Sources */,
 				44198C1F2A3A6E66004F22D5 /* EalainImageView.swift in Sources */,
-				44B8235E2D4F3B75007FA594 /* HordeDefaults.swift in Sources */,
 				44B8235F2D4F3B75007FA594 /* HordeModels.swift in Sources */,
 				44B823602D4F3B75007FA594 /* HordeAPI.swift in Sources */,
 				44198C102A3A6D76004F22D5 /* AppDelegate.swift in Sources */,
+				4468ABE42D508EBA009559B6 /* ViewModel.swift in Sources */,
 				44198C1B2A3A6D99004F22D5 /* PreviewViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -293,9 +293,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -351,9 +353,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -366,6 +370,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
 		};
@@ -376,6 +381,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2Y9M69QJKZ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -398,6 +404,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2Y9M69QJKZ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -421,6 +428,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2Y9M69QJKZ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -450,6 +458,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2Y9M69QJKZ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;

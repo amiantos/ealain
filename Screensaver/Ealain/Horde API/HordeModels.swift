@@ -11,53 +11,7 @@ import Foundation
 
 struct HordeRequest: Codable {
     let prompt: String
-    let params: HordeRequestParams
-    var models: [String]
-    var workers: [String]
-}
-
-struct HordeRequestParams: Codable {
-    let n: Int
-    var maxContentLength: Int
-    var maxLength: Int
-    var repPen: Float
-    var temperature: Float
-    var topP: Float
-    var topK: Float
-    var topA: Float
-    var typical: Float
-    var tfs: Float
-    var repPenRange: Float
-    var repPenSlope: Float
-    var samplerOrder: [Int]
-    var useDefaultBadwordsids: Bool
-    var stopSequence: [String]
-    var minP: Float
-    var dynatempRange: Float
-    var dynatempExponent: Float
-    var smoothingFactor: Float
-
-    enum CodingKeys: String, CodingKey {
-        case n
-        case maxContentLength = "max_content_length"
-        case maxLength = "max_length"
-        case repPen = "rep_pen"
-        case temperature
-        case topP = "top_p"
-        case topK = "top_k"
-        case topA = "top_a"
-        case typical
-        case tfs
-        case repPenRange = "rep_pen_range"
-        case repPenSlope = "rep_pen_slope"
-        case samplerOrder = "sampler_order"
-        case useDefaultBadwordsids = "use_default_badwordsids"
-        case stopSequence = "stop_sequence"
-        case minP = "min_p"
-        case dynatempRange = "dynatemp_range"
-        case dynatempExponent = "dynatemp_exponent"
-        case smoothingFactor = "smoothing_factor"
-    }
+    let style: UUID
 }
 
 struct HordeRequestResponse: Codable {
@@ -94,8 +48,9 @@ struct HordeCheckRequestResponse: Codable {
 }
 
 struct HordeGeneration: Codable {
-    let text: String
+    let img: URL
     let seed: Int
+    let id: UUID
     let genMetadata: [String]
     let workerId: UUID
     let workerName: String
@@ -103,8 +58,9 @@ struct HordeGeneration: Codable {
     let state: String
 
     enum CodingKeys: String, CodingKey {
-        case text
+        case img
         case seed
+        case id
         case genMetadata = "gen_metadata"
         case workerId = "worker_id"
         case workerName = "worker_name"
@@ -112,4 +68,3 @@ struct HordeGeneration: Codable {
         case state
     }
 }
-

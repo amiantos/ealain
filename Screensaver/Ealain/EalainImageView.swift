@@ -23,9 +23,13 @@ class EalainImageView: NSView {
         guard let url = URL(string: url) else { return }
 
         DispatchQueue.global(qos: .background).async {
-            if let data = try? Data(contentsOf: url), let image = NSImage(data: data) {
+            if let data = try? Data(contentsOf: url),
+                let image = NSImage(data: data)
+            {
                 DispatchQueue.main.async {
-                    self.layer?.contents = image.layerContents(forContentsScale: image.recommendedLayerContentsScale(0.0))
+                    self.layer?.contents = image.layerContents(
+                        forContentsScale: image.recommendedLayerContentsScale(
+                            0.0))
                     self.layer?.contentsGravity = .resizeAspectFill
                 }
             }

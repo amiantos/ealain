@@ -2,48 +2,52 @@ import Foundation
 import ScreenSaver
 
 class EalainView: ScreenSaverView {
-    
-    let framesPerSecond: Int = 30
-
-    var count: Int = 0
-    var urlRefreshCount: Int = 0
 
     let bottomImageView = EalainImageView()
     let topImageView = EalainImageView()
 
-    let loadingLabelView = NSView()
-    let loadingLabel = NSTextField(labelWithString: "Ealain requires internet access to function. Please wait...")
+    let statusLabelView = NSView()
+    let statusLabel = NSTextField(
+        labelWithString:
+            "Ealain requires internet access to function. Please wait...")
+    let statusLabelShadow = NSShadow()
 
-    var currentUrl1: String = ""
-    var currentUrl2: String = ""
-    var urls: [String] = []
-    var recentUrls: [String] = []
+    let viewModel: EalainView.ViewModel = .init()
 
     override init?(frame: CGRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
-        
-        Log.logLevel = .debug
-        
-        self.animationTimeInterval = TimeInterval(1 / framesPerSecond)
 
-        addSubview(loadingLabelView)
-        loadingLabelView.wantsLayer = true
-        loadingLabelView.addSubview(loadingLabel)
+        Log.logLevel = .debug
+
+        self.animationTimeInterval = TimeInterval(1 / viewModel.framesPerSecond)
+
+        viewModel.delegate = self
+
         addSubview(bottomImageView)
         addSubview(topImageView)
         topImageView.layer?.opacity = 0
         bottomImageView.layer?.opacity = 0
 
-        loadingLabel.textColor = .white
-        loadingLabel.sizeToFit()
+        addSubview(statusLabelView)
+        statusLabelView.wantsLayer = true
+        statusLabelView.addSubview(statusLabel)
+        statusLabel.textColor = .white
+        statusLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        statusLabel.sizeToFit()
 
-        setupLabelAnimation()
+        statusLabelShadow.shadowColor = NSColor.black
+        statusLabelShadow.shadowOffset = CGSize(width: 0, height: 0)
+        statusLabelShadow.shadowBlurRadius = 4
+        statusLabel.shadow = statusLabelShadow
 
-        fetchFreshImageUrls(firstLaunch: true)
-        
-        DistributedNotificationCenter.default.addObserver(self,
+        DistributedNotificationCenter.default.addObserver(
+            self,
             selector: #selector(EalainView.willStop(_:)),
-                    name: Notification.Name("com.apple.screensaver.willstop"), object: nil)
+            name: Notification.Name("com.apple.screensaver.willstop"),
+            object: nil)
+
+        viewModel.start()
+        updateOrientation()
     }
 
     required init?(coder: NSCoder) {
@@ -61,82 +65,87 @@ class EalainView: ScreenSaverView {
     override func draw(_ rect: NSRect) {
         super.draw(rect)
 
-        loadingLabel.frame.origin = CGPoint(x: ((window?.frame.width)!/2)-(loadingLabel.frame.width/2), y: (window?.frame.height)!/2)
-        loadingLabelView.frame.origin = loadingLabel.frame.origin
+        statusLabel.frame.origin = CGPoint(x: 10, y: 10)
+        statusLabelView.frame.origin = statusLabel.frame.origin
 
         var squareFrame = NSRect.zero
-        squareFrame.size = NSSize(width: window?.frame.width ?? 200, height: window?.frame.height ?? 200)
+        squareFrame.size = NSSize(
+            width: window?.frame.width ?? 200,
+            height: window?.frame.height ?? 200)
         squareFrame.origin.x = 0
         squareFrame.origin.y = 0
         bottomImageView.frame = squareFrame
         topImageView.frame = squareFrame
-        loadingLabelView.frame = squareFrame
+        statusLabelView.frame = squareFrame
 
+        updateOrientation()
     }
 
     override func animateOneFrame() {
-        count += 1
-        urlRefreshCount += 1
-
-        if count == 20 * framesPerSecond {
-            swapImageViews()
-            count = 0
-        }
-
-        if urlRefreshCount == 3600 * framesPerSecond {
-            fetchFreshImageUrls()
-            urlRefreshCount = 0
-        }
+        viewModel.animateOneFrame()
     }
-    
-    
+
     @objc fileprivate func willStop(_ aNotification: Notification) {
         Log.debug("🖼️ 📢📢📢 willStop")
-           if #available(macOS 14.0, *) {
-               exit(0)
-           }
-           self.stopAnimation()
-       }
-
-    fileprivate func setupLabelAnimation() {
-        Log.debug("Fading label out...")
-        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
-        animation.fromValue = 1.0
-        animation.toValue = 0.2
-        animation.duration = 3.0
-        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        animation.autoreverses = true
-        animation.repeatCount = .infinity
-
-        loadingLabelView.layer?.opacity = 0.2
-        loadingLabelView.layer?.add(animation, forKey: "labelFadeOut")
+        if #available(macOS 14.0, *) {
+            exit(0)
+        }
+        self.stopAnimation()
     }
 
-    fileprivate func fetchFreshImageUrls(firstLaunch: Bool = false) {
-        Log.debug("Fetching fresh image URLs...")
-        DispatchQueue.global(qos: .background).async {
-            if let data = try? Data(contentsOf: URL(string: "https://ealain.s3.amazonaws.com/latest.json")!), let urls = try? JSONDecoder().decode(
-                [String].self,
-                from: data
-            ) {
-                self.urls = urls
-                if firstLaunch {
-                    DispatchQueue.main.async {
-                        self.swapHiddenImage()
-                    }
-                }
-            }
+    private func updateOrientation() {
+        if window?.frame.width ?? 0 < window?.frame.height ?? 0 {
+            viewModel.setOrientation(.portrait)
+        } else {
+            viewModel.setOrientation(.landscape)
         }
     }
 
-    fileprivate func swapImageViews() {
+}
+
+extension EalainView: EalainView.ViewModelDelegate {
+
+    func updateStatusLabel(_ text: String) {
+        statusLabel.stringValue = text
+    }
+
+    internal func swapHiddenImage() {
+        if topImageView.layer?.opacity == 1.0
+            || bottomImageView.layer?.opacity == 0.0
+        {
+            bottomImageView.loadImage(url: viewModel.getImageUrl(for: .bottom))
+            Log.debug("Swapped Bottom Image")
+
+            if bottomImageView.layer?.opacity == 0.0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    let animation = CABasicAnimation(
+                        keyPath: #keyPath(CALayer.opacity))
+                    animation.fromValue = 0.0
+                    animation.toValue = 1.0
+                    animation.duration = 5.0
+                    animation.timingFunction = CAMediaTimingFunction(
+                        name: .easeInEaseOut)
+                    animation.delegate = self
+                    self.bottomImageView.layer?.opacity = 1
+                    self.bottomImageView.layer?.add(animation, forKey: "fade")
+                    Log.debug("Displaying Bottom Image")
+                }
+            }
+        } else if topImageView.layer?.opacity == 0.0 {
+            topImageView.loadImage(url: viewModel.getImageUrl(for: .top))
+            Log.debug("Swapped Top Image")
+        }
+    }
+
+    internal func swapImageViews() {
         Log.debug("Swapping images...")
         if topImageView.layer?.opacity ?? 0.0 < 1 {
             let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
             animation.fromValue = 0.0
             animation.toValue = 1.0
             animation.duration = 5.0
-            animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            animation.timingFunction = CAMediaTimingFunction(
+                name: .easeInEaseOut)
             animation.delegate = self
             topImageView.layer?.opacity = 1
             topImageView.layer?.add(animation, forKey: "fade")
@@ -146,56 +155,12 @@ class EalainView: ScreenSaverView {
             animation.fromValue = 1.0
             animation.toValue = 0.0
             animation.duration = 5.0
-            animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            animation.timingFunction = CAMediaTimingFunction(
+                name: .easeInEaseOut)
             animation.delegate = self
             topImageView.layer?.opacity = 0
             topImageView.layer?.add(animation, forKey: "fade")
             Log.debug("Hiding Top Image")
-        }
-    }
-
-    fileprivate func swapHiddenImage() {
-        if recentUrls.count == urls.count {
-            Log.debug("Image list exahusted, pruning recent urls by half...")
-            recentUrls.removeFirst(recentUrls.count/2)
-        }
-
-        if topImageView.layer?.opacity == 1.0 || bottomImageView.layer?.opacity == 0.0 {
-            while true {
-                guard let newUrl = urls.randomElement() else { break }
-                if recentUrls.firstIndex(of: newUrl) == nil {
-                    currentUrl1 = newUrl
-                    break
-                }
-            }
-            bottomImageView.loadImage(url: currentUrl1)
-            recentUrls.append(currentUrl1)
-            Log.debug("Swapped Bottom Image")
-
-            if bottomImageView.layer?.opacity == 0.0 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                    let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
-                    animation.fromValue = 0.0
-                    animation.toValue = 1.0
-                    animation.duration = 5.0
-                    animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                    animation.delegate = self
-                    self.bottomImageView.layer?.opacity = 1
-                    self.bottomImageView.layer?.add(animation, forKey: "fade")
-                    Log.debug("Displaying Bottom Image")
-                }
-            }
-        } else if topImageView.layer?.opacity == 0.0 {
-            while true {
-                guard let newUrl = urls.randomElement() else { break }
-                if recentUrls.firstIndex(of: newUrl) == nil {
-                    currentUrl2 = newUrl
-                    break
-                }
-            }
-            topImageView.loadImage(url: currentUrl2)
-            recentUrls.append(currentUrl2)
-            Log.debug("Swapped Top Image")
         }
     }
 }

@@ -25,17 +25,37 @@ class HordeAPI {
 
     // Getters
 
-    func submitRequest(apiKey: String, request: HordeRequest) async throws -> HordeRequestResponse {
+    func submitRequest(apiKey: String, request: HordeRequest) async throws
+        -> HordeRequestResponse
+    {
         do {
-            return try await post("/generate/async", responseType: HordeRequestResponse.self, apiKey: apiKey, body: request)
+            return try await post(
+                "/generate/async", responseType: HordeRequestResponse.self,
+                apiKey: apiKey, body: request)
         } catch URLError.timedOut {
             throw APIError.requestTimedOut
         }
     }
 
-    func checkRequest(apiKey: String, requestUUID: UUID) async throws -> HordeCheckRequestResponse {
+    func checkRequest(apiKey: String, requestUUID: UUID) async throws
+        -> HordeCheckRequestResponse
+    {
         do {
-            return try await get("/generate/check/\(requestUUID)", responseType: HordeCheckRequestResponse.self, apiKey: apiKey)
+            return try await get(
+                "/generate/check/\(requestUUID)",
+                responseType: HordeCheckRequestResponse.self, apiKey: apiKey)
+        } catch URLError.timedOut {
+            throw APIError.requestTimedOut
+        }
+    }
+
+    func fetchRequest(apiKey: String, requestUUID: UUID) async throws
+        -> HordeCheckRequestResponse
+    {
+        do {
+            return try await get(
+                "/generate/status/\(requestUUID)",
+                responseType: HordeCheckRequestResponse.self, apiKey: apiKey)
         } catch URLError.timedOut {
             throw APIError.requestTimedOut
         }
@@ -43,7 +63,10 @@ class HordeAPI {
 
     // Ugly Innards
 
-    private func request(for url: URL, method: String = "GET", apiKey: String? = nil, body: Encodable? = nil) -> URLRequest {
+    private func request(
+        for url: URL, method: String = "GET", apiKey: String? = nil,
+        body: Encodable? = nil
+    ) -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -58,14 +81,23 @@ class HordeAPI {
         return request
     }
 
-    private func perform<T: Decodable>(_ request: URLRequest, responseType _: T.Type) async throws -> T {
+    private func perform<T: Decodable>(
+        _ request: URLRequest, responseType _: T.Type
+    ) async throws -> T {
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            if let response = response as? HTTPURLResponse, !((200 ..< 300) ~= response.statusCode) {
-                throw APIError.invalidResponse(statusCode: response.statusCode, content: String(describing: String(data: data, encoding: .utf8)))
+            let (data, response) = try await URLSession.shared.data(
+                for: request)
+            if let response = response as? HTTPURLResponse,
+                !((200..<300) ~= response.statusCode)
+            {
+                throw APIError.invalidResponse(
+                    statusCode: response.statusCode,
+                    content: String(
+                        describing: String(data: data, encoding: .utf8)))
             }
             do {
-                let decodedResponse = try JSONDecoder().decode(T.self, from: data)
+                let decodedResponse = try JSONDecoder().decode(
+                    T.self, from: data)
                 return decodedResponse
             } catch {
                 throw APIError.decodingFailed
@@ -75,18 +107,26 @@ class HordeAPI {
         }
     }
 
-    private func get<T: Decodable>(_ path: String, responseType: T.Type, apiKey: String? = nil) async throws -> T {
+    private func get<T: Decodable>(
+        _ path: String, responseType: T.Type, apiKey: String? = nil
+    ) async throws -> T {
         do {
-            let request = request(for: URL(string: "\(urlBase)\(path)")!, apiKey: apiKey)
+            let request = request(
+                for: URL(string: "\(urlBase)\(path)")!, apiKey: apiKey)
             return try await perform(request, responseType: T.self)
         } catch {
             throw APIError.requestFailed(error)
         }
     }
 
-    private func post<T: Decodable>(_ path: String, responseType: T.Type, apiKey: String? = nil, body: Encodable? = nil) async throws -> T {
+    private func post<T: Decodable>(
+        _ path: String, responseType: T.Type, apiKey: String? = nil,
+        body: Encodable? = nil
+    ) async throws -> T {
         do {
-            let request = request(for: URL(string: "\(urlBase)\(path)")!, method: "POST", apiKey: apiKey, body: body)
+            let request = request(
+                for: URL(string: "\(urlBase)\(path)")!, method: "POST",
+                apiKey: apiKey, body: body)
             return try await perform(request, responseType: T.self)
         } catch {
             throw APIError.requestFailed(error)

@@ -11,7 +11,7 @@ import Foundation
 
 struct HordeRequest: Codable {
     let prompt: String
-    let style: UUID
+    let style: String
 }
 
 struct HordeRequestResponse: Codable {
@@ -20,7 +20,7 @@ struct HordeRequestResponse: Codable {
 }
 
 struct HordeCheckRequestResponse: Codable {
-    let generations: [HordeGeneration]
+    let generations: [HordeGeneration]?
     let finished: Int
     let processing: Int
     let restarted: Int
@@ -48,23 +48,9 @@ struct HordeCheckRequestResponse: Codable {
 }
 
 struct HordeGeneration: Codable {
-    let img: URL
-    let seed: Int
-    let id: UUID
-    let genMetadata: [String]
-    let workerId: UUID
-    let workerName: String
-    let model: String
-    let state: String
+    let img: String
 
     enum CodingKeys: String, CodingKey {
         case img
-        case seed
-        case id
-        case genMetadata = "gen_metadata"
-        case workerId = "worker_id"
-        case workerName = "worker_name"
-        case model
-        case state
     }
 }

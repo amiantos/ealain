@@ -106,7 +106,9 @@ class EalainView: ScreenSaverView {
 extension EalainView: EalainView.ViewModelDelegate {
 
     func updateStatusLabel(_ text: String) {
-        statusLabel.stringValue = text
+        DispatchQueue.main.async {
+            self.statusLabel.stringValue = text
+        }
     }
 
     internal func swapHiddenImage() {

@@ -96,6 +96,7 @@ class HordeAPI {
                         describing: String(data: data, encoding: .utf8)))
             }
             do {
+//                Log.debug(String(data: data, encoding: .utf8) ?? "No data")
                 let decodedResponse = try JSONDecoder().decode(
                     T.self, from: data)
                 return decodedResponse

@@ -1,7 +1,7 @@
 import Foundation
 import ScreenSaver
 
-class EalainView: ScreenSaverView {
+class EalainView: ScreenSaverView, ViewModelDelegate {
 
     let bottomImageView = EalainImageView()
     let topImageView = EalainImageView()
@@ -12,12 +12,12 @@ class EalainView: ScreenSaverView {
             "Ealain requires internet access to function. Please wait...")
     let statusLabelShadow = NSShadow()
 
-    let viewModel: EalainView.ViewModel?
+    let viewModel: ViewModel?
 
     private var fadeOutTimer: Timer?
 
     override init?(frame: CGRect, isPreview: Bool) {
-        viewModel = EalainView.ViewModel()
+        viewModel = ViewModel()
         super.init(frame: frame, isPreview: isPreview)
 
         Log.logLevel = .debug
@@ -145,29 +145,25 @@ class EalainView: ScreenSaverView {
         Log.debug("Hiding Top Image")
     }
 
-}
-
-extension EalainView: EalainView.ViewModelDelegate {
-
     func updateStatusLabel(_ text: String) {
-//        fadeOutTimer?.invalidate()
-//        fadeOutTimer = nil
-//        statusLabelView.layer?.removeAllAnimations()
-//
-//        statusLabel.stringValue = text
-//        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
-//        animation.fromValue = statusLabelView.layer?.opacity ?? 0.0
-//        animation.toValue = 1.0
-//        animation.duration = 1
-//        animation.timingFunction = CAMediaTimingFunction(
-//            name: .easeInEaseOut)
-//        statusLabelView.layer?.opacity = 1
-//        statusLabelView.layer?.add(animation, forKey: "fade")
-//
-//        fadeOutTimer = Timer.scheduledTimer(
-//            timeInterval: 5.0, target: self,
-//            selector: #selector(fadeOutStatusLabel), userInfo: nil,
-//            repeats: false)
+        fadeOutTimer?.invalidate()
+        fadeOutTimer = nil
+        statusLabelView.layer?.removeAllAnimations()
+
+        statusLabel.stringValue = text
+        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+        animation.fromValue = statusLabelView.layer?.opacity ?? 0.0
+        animation.toValue = 1.0
+        animation.duration = 1
+        animation.timingFunction = CAMediaTimingFunction(
+            name: .easeInEaseOut)
+        statusLabelView.layer?.opacity = 1
+        statusLabelView.layer?.add(animation, forKey: "fade")
+
+        fadeOutTimer = Timer.scheduledTimer(
+            timeInterval: 5.0, target: self,
+            selector: #selector(fadeOutStatusLabel), userInfo: nil,
+            repeats: false)
     }
 
     @objc private func fadeOutStatusLabel() {
@@ -181,7 +177,7 @@ extension EalainView: EalainView.ViewModelDelegate {
         statusLabelView.layer?.add(animation, forKey: "fade")
     }
 
-    internal func swapHiddenImage() {
+    func swapHiddenImage() {
         if bottomImageView.layer?.opacity == 0.0 {
             if let url = viewModel?.getImageUrl() {
                 bottomImageView.loadImage(url: url)
@@ -201,10 +197,10 @@ extension EalainView: EalainView.ViewModelDelegate {
         }
     }
 
-    internal func swapImageViews() {
-        if topImageView.layer?.opacity ?? 0.0 < 1 {
+    func swapImageViews() {
+        if topImageView.layer?.opacity ?? 0.0 == 0.0 {
             showTopImage()
-        } else {
+        } else if topImageView.layer?.opacity ?? 0.0 == 1.0 {
             hideTopImage()
         }
     }

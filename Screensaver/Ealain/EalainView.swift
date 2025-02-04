@@ -12,16 +12,19 @@ class EalainView: ScreenSaverView {
             "Ealain requires internet access to function. Please wait...")
     let statusLabelShadow = NSShadow()
 
-    let viewModel: EalainView.ViewModel = .init()
+    let viewModel: EalainView.ViewModel?
+
+    private var fadeOutTimer: Timer?
 
     override init?(frame: CGRect, isPreview: Bool) {
+        viewModel = EalainView.ViewModel()
         super.init(frame: frame, isPreview: isPreview)
 
         Log.logLevel = .debug
 
-        self.animationTimeInterval = TimeInterval(1 / viewModel.framesPerSecond)
+        self.animationTimeInterval = TimeInterval(1 / (viewModel?.framesPerSecond ?? 30))
 
-        viewModel.delegate = self
+        viewModel?.delegate = self
 
         addSubview(bottomImageView)
         addSubview(topImageView)
@@ -34,10 +37,11 @@ class EalainView: ScreenSaverView {
         statusLabel.textColor = .white
         statusLabel.font = .systemFont(ofSize: 16, weight: .medium)
         statusLabel.sizeToFit()
+        statusLabel.alphaValue = 0
 
         statusLabelShadow.shadowColor = NSColor.black
-        statusLabelShadow.shadowOffset = CGSize(width: 0, height: 0)
-        statusLabelShadow.shadowBlurRadius = 4
+        statusLabelShadow.shadowOffset = CGSize(width: 2, height: 2)
+        statusLabelShadow.shadowBlurRadius = 3
         statusLabel.shadow = statusLabelShadow
 
         DistributedNotificationCenter.default.addObserver(
@@ -45,9 +49,9 @@ class EalainView: ScreenSaverView {
             selector: #selector(EalainView.willStop(_:)),
             name: Notification.Name("com.apple.screensaver.willstop"),
             object: nil)
-        
+
         updateOrientation()
-        viewModel.start()
+        viewModel?.start()
     }
 
     required init?(coder: NSCoder) {
@@ -65,9 +69,6 @@ class EalainView: ScreenSaverView {
     override func draw(_ rect: NSRect) {
         super.draw(rect)
 
-        statusLabel.frame.origin = CGPoint(x: 10, y: 10)
-        statusLabelView.frame.origin = statusLabel.frame.origin
-
         var squareFrame = NSRect.zero
         squareFrame.size = NSSize(
             width: window?.frame.width ?? 200,
@@ -77,12 +78,15 @@ class EalainView: ScreenSaverView {
         bottomImageView.frame = squareFrame
         topImageView.frame = squareFrame
         statusLabelView.frame = squareFrame
+        
+        statusLabel.frame.origin = CGPoint(x: 10, y: 10)
 
         updateOrientation()
     }
 
     override func animateOneFrame() {
-        viewModel.animateOneFrame()
+        super.animateOneFrame()
+        viewModel?.animateOneFrame()
     }
 
     @objc fileprivate func willStop(_ aNotification: Notification) {
@@ -95,12 +99,12 @@ class EalainView: ScreenSaverView {
 
     private func updateOrientation() {
         if window?.frame.width ?? 0 < window?.frame.height ?? 0 {
-            viewModel.setOrientation(.portrait)
+            viewModel?.setOrientation(.portrait)
         } else {
-            viewModel.setOrientation(.landscape)
+            viewModel?.setOrientation(.landscape)
         }
     }
-    
+
     private func showBottomImage() {
         let animation = CABasicAnimation(
             keyPath: #keyPath(CALayer.opacity))
@@ -127,7 +131,7 @@ class EalainView: ScreenSaverView {
         topImageView.layer?.add(animation, forKey: "fade")
         Log.debug("Displaying Top Image")
     }
-    
+
     private func hideTopImage() {
         let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
         animation.fromValue = 1.0
@@ -146,27 +150,54 @@ class EalainView: ScreenSaverView {
 extension EalainView: EalainView.ViewModelDelegate {
 
     func updateStatusLabel(_ text: String) {
-        DispatchQueue.main.async {
-            self.statusLabel.stringValue = text
+        DispatchQueue.main.async { [self] in
+            fadeOutTimer?.invalidate()
+            fadeOutTimer = nil
+            statusLabel.layer?.removeAllAnimations()
+
+            statusLabel.stringValue = text
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 1
+                statusLabel.animator().alphaValue = 1.0
+            }
+
+            fadeOutTimer = Timer.scheduledTimer(
+                timeInterval: 5.0, target: self,
+                selector: #selector(fadeOutStatusLabel), userInfo: nil,
+                repeats: false)
         }
     }
-    
+
+    @objc private func fadeOutStatusLabel() {
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 1
+            statusLabel.animator().alphaValue = 0.0
+        }
+    }
+
     internal func swapHiddenImage() {
-        if bottomImageView.layer?.opacity == 0.0 {
-            bottomImageView.loadImage(url: viewModel.getImageUrl())
-            Log.debug("Swapped Bottom Image")
-            self.showBottomImage()
-        } else if topImageView.layer?.opacity == 1.0 {
-            bottomImageView.loadImage(url: viewModel.getImageUrl())
-            Log.debug("Swapped Bottom Image")
-        } else if topImageView.layer?.opacity == 0.0 {
-            topImageView.loadImage(url: viewModel.getImageUrl())
-            Log.debug("Swapped Top Image")
+        DispatchQueue.main.async { [self] in
+            if bottomImageView.layer?.opacity == 0.0 {
+                if let url = viewModel?.getImageUrl() {
+                    bottomImageView.loadImage(url: url)
+                    Log.debug("Swapped Bottom Image")
+                    self.showBottomImage()
+                }
+            } else if topImageView.layer?.opacity == 1.0 {
+                if let url = viewModel?.getImageUrl() {
+                    bottomImageView.loadImage(url: url)
+                    Log.debug("Swapped Bottom Image")
+                }
+            } else if topImageView.layer?.opacity == 0.0 {
+                if let url = viewModel?.getImageUrl() {
+                    topImageView.loadImage(url: url)
+                    Log.debug("Swapped Top Image")
+                }
+            }
         }
     }
-    
+
     internal func swapImageViews() {
-        Log.debug("Swapping images...")
         if topImageView.layer?.opacity ?? 0.0 < 1 {
             showTopImage()
         } else {
@@ -178,7 +209,7 @@ extension EalainView: EalainView.ViewModelDelegate {
 extension EalainView: CAAnimationDelegate {
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         if flag {
-            swapHiddenImage()
+            viewModel?.animationStopped()
         }
     }
 }

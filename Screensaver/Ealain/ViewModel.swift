@@ -64,32 +64,45 @@ extension EalainView {
 
         func start() {
             Log.debug("ViewModel start!")
+            delegate?.updateStatusLabel("Ealain requires internet access to function. Please wait...")
             
-            while true {
-                updateCurrentUrlStrings()
-                if urls.count < 2 {
-                    Task {
+            Task {
+                while true {
+                    updateCurrentUrlStrings()
+                    if urls.count < 2 {
                         await generateNewImages()
+                    } else {
+                        delegate?.swapHiddenImage()
+                        break
                     }
-                } else {
-                    delegate?.swapHiddenImage()
-                    break
+                }
+                
+                while true {
+                    updateCurrentUrlStrings()
+                    if urls.count < 100 {
+                        await generateNewImages()
+                    } else {
+                        // Check for old images and delete them
+                    }
                 }
             }
         }
         
+        func animationStopped() {
+            Log.debug("Fade animation complete")
+            delegate?.swapHiddenImage()
+            frameCounter = 0
+        }
+
         func animateOneFrame() {
             frameCounter += 1
-            urlRefreshCounter += 1
 
             if frameCounter == 20 * framesPerSecond {
                 Log.debug("20 seconds has passed")
+                if urls.count > 2 {
+                    delegate?.swapImageViews()
+                }
                 frameCounter = 0
-            }
-
-            if urlRefreshCounter == 3600 * framesPerSecond {
-                Log.debug("One hour has passed.")
-                urlRefreshCounter = 0
             }
         }
 
@@ -184,7 +197,7 @@ extension EalainView {
 
             do {
                 delegate?.updateStatusLabel(
-                    "Submitting new image request to the AI Horde...")
+                    "Requesting new images from the AI Horde")
                 let requestResponse = try await hordeAPI.submitRequest(
                     apiKey: hordeApiKey,
                     request: HordeRequest(
@@ -195,24 +208,27 @@ extension EalainView {
                 Log.debug(
                     "New generation request ID: \(String(describing: currentRequestUUID))"
                 )
-                delegate?.updateStatusLabel(
-                    "Submitted new image request to the AI Horde")
             } catch APIError.requestFailed {
                 delegate?.updateStatusLabel(
-                    "Unable to communicate with the AI Horde")
+                    "Unable to communicate with the AI Horde, retrying")
             } catch APIError.requestTimedOut {
                 delegate?.updateStatusLabel(
-                    "Unable to communicate with the AI Horde")
+                    "Unable to communicate with the AI Horde, retrying")
             } catch let APIError.invalidResponse(statusCode, content) {
                 Log.error(
                     "Received \(statusCode) from AI Horde API. \(content)")
                 if statusCode == 429 {
                     delegate?.updateStatusLabel(
-                        "The AI Horde is experiencing heavy loads, image generation will resume later."
+                        "The AI Horde is experiencing heavy loads, retrying"
                     )
+                } else {
+                    delegate?.updateStatusLabel(
+                        "Unable to communicate with the AI Horde, retrying")
                 }
             } catch {
                 Log.error("\(error)")
+                delegate?.updateStatusLabel(
+                    "Unable to communicate with the AI Horde, retrying")
             }
 
             if let requestUUID = currentRequestUUID {
@@ -224,7 +240,7 @@ extension EalainView {
                         Log.debug("\(requestResponse)")
                         if requestResponse.done {
                             delegate?.updateStatusLabel(
-                                "Downloading new image...")
+                                "Downloading new images from the AI Horde")
                             let finishedRequestResponse =
                                 try await hordeAPI.fetchRequest(
                                     apiKey: hordeApiKey,
@@ -233,7 +249,7 @@ extension EalainView {
                                 .generations
                             {
                                 delegate?.updateStatusLabel(
-                                    "Storing new images...")
+                                    "Storing new images downloaded from the AI Horde")
                                 for generation in generations {
                                     _ = await saveImageFromUrlString(generation.img)
                                 }
@@ -242,25 +258,23 @@ extension EalainView {
                         } else {
                             if !requestResponse.isPossible {
                                 delegate?.updateStatusLabel(
-                                    "Request can not be completed as sent.")
+                                    "There are insufficient AI Horde workers to generate new images, waiting")
                             } else if requestResponse.processing == 0 {
                                 if requestResponse.queuePosition > 0 {
                                     delegate?.updateStatusLabel(
-                                        "Waiting... (#\(requestResponse.queuePosition) in queue)"
+                                        "Waiting (Currently #\(requestResponse.queuePosition) in queue)"
                                     )
                                 } else {
-                                    delegate?.updateStatusLabel("Waiting...")
+                                    delegate?.updateStatusLabel("Waiting for a worker to begin generating images")
                                 }
                             } else {
                                 delegate?.updateStatusLabel(
-                                    "Image is generating...")
+                                    "Images are being generated by the AI Horde")
                             }
-                            try await Task.sleep(nanoseconds: 3_000_000_000)
                         }
                     } catch APIError.requestTimedOut {
                         delegate?.updateStatusLabel(
-                            "Unable to communicate with the AI Horde.")
-                        break
+                            "Request to the AI Horde timed out, retrying")
                     } catch let APIError.invalidResponse(statusCode, content) {
                         Log.error(
                             "Received \(statusCode) from AI Horde API. \(content)"
@@ -276,15 +290,28 @@ extension EalainView {
                         Log.error(
                             "Uknown error occurred when polling horde? \(error)"
                         )
-                        break
+                    }
+                    
+                    do {
+                        try await Task.sleep(nanoseconds: 5_000_000_000)
+                    } catch {
+                        Log.error("Could not sleep for 5 seconds!")
                     }
                 }
             }
+            
+            do {
+                try await Task.sleep(nanoseconds: 5_000_000_000)
+            } catch {
+                Log.error("Could not sleep for extra 5 seconds!")
+            }
+            
             currentlyGenerating = false
+            
         }
 
         //        private func fetchFreshImageUrls(firstLaunch: Bool = false) {
-        //            Log.debug("Fetching fresh image URLs...")
+        //            Log.debug("Fetching fresh image URLs")
         //            DispatchQueue.global(qos: .background).async {
         //                if let data = try? Data(
         //                    contentsOf: URL(
@@ -311,7 +338,7 @@ extension EalainView {
 
             if recentlyUsedUrls.count == urls.count {
                 Log.debug(
-                    "Image list exahusted, pruning recent urls by half...")
+                    "Image list exahusted, pruning recent urls by half")
                 recentlyUsedUrls.removeFirst(recentlyUsedUrls.count / 2)
             }
 

@@ -24,6 +24,7 @@ extension EalainView {
         func swapImageViews()
     }
 
+    @MainActor
     class ViewModel {
         let hordeAPI: HordeAPI = .init()
         var delegate: ViewModelDelegate?
@@ -38,7 +39,7 @@ extension EalainView {
 
         var urls: [String] = []
         var recentlyUsedUrls: [String] = []
-        
+
         var currentlyGenerating: Bool = false
 
         init(delegate: ViewModelDelegate? = nil) {
@@ -49,11 +50,11 @@ extension EalainView {
             if self.orientation == orientation {
                 return
             }
-            
+
             self.orientation = orientation
             Log.debug("Orientation changed to \(orientation)!")
         }
-        
+
         func updateCurrentUrlStrings() {
             do {
                 urls = try getCurrentImageUrlStrings()
@@ -64,15 +65,15 @@ extension EalainView {
 
         func start() {
             Log.debug("ViewModel start!")
-            delegate?.updateStatusLabel("Ealain requires internet access to function. Please wait...")
-            
+            delegate?.updateStatusLabel(
+                "Ealain requires internet access to function. Please wait...")
             Task {
                 while true {
                     updateCurrentUrlStrings()
                     if urls.count < 2 {
                         await generateNewImages()
                     } else {
-                        delegate?.swapHiddenImage()
+                        self.delegate?.swapHiddenImage()
                         break
                     }
                 }
@@ -87,7 +88,7 @@ extension EalainView {
                 }
             }
         }
-        
+
         func animationStopped() {
             Log.debug("Fade animation complete")
             delegate?.swapHiddenImage()
@@ -106,7 +107,6 @@ extension EalainView {
             }
         }
 
-
         func getImagesFolderURL() throws -> URL {
             let fileManager = FileManager.default
 
@@ -123,7 +123,8 @@ extension EalainView {
                     ])
             }
 
-            let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain").appendingPathComponent(self.orientation.rawValue)
+            let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain")
+                .appendingPathComponent(self.orientation.rawValue)
             try fileManager.createDirectory(
                 at: imagesFolderURL, withIntermediateDirectories: true,
                 attributes: nil)
@@ -146,10 +147,13 @@ extension EalainView {
 
                 // Determine file name and path
                 let timestamp = Int(Date().timeIntervalSince1970)
-                let originalFileName = url.deletingPathExtension().lastPathComponent // Remove extension from original name
-                let fileExtension = url.pathExtension.isEmpty ? "webp" : url.pathExtension // Default to .webp if no extension
-                let fileName = "\(timestamp)-\(originalFileName).\(fileExtension)"
-                
+                let originalFileName = url.deletingPathExtension()
+                    .lastPathComponent  // Remove extension from original name
+                let fileExtension =
+                    url.pathExtension.isEmpty ? "webp" : url.pathExtension  // Default to .webp if no extension
+                let fileName =
+                    "\(timestamp)-\(originalFileName).\(fileExtension)"
+
                 let fileURL = imagesFolderURL.appendingPathComponent(fileName)
 
                 // Write data to file
@@ -161,7 +165,7 @@ extension EalainView {
             } catch {
                 Log.error("Error saving image: \(error)")
             }
-            
+
             return false
         }
 
@@ -187,11 +191,11 @@ extension EalainView {
             }
         }
 
-        func generateNewImages() async{
+        func generateNewImages() async {
             if currentlyGenerating {
                 return
             }
-            
+
             currentlyGenerating = true
             var currentRequestUUID: UUID?
 
@@ -249,27 +253,33 @@ extension EalainView {
                                 .generations
                             {
                                 delegate?.updateStatusLabel(
-                                    "Storing new images downloaded from the AI Horde")
+                                    "Storing new images downloaded from the AI Horde"
+                                )
                                 for generation in generations {
-                                    _ = await saveImageFromUrlString(generation.img)
+                                    _ = await saveImageFromUrlString(
+                                        generation.img)
                                 }
                             }
                             break
                         } else {
                             if !requestResponse.isPossible {
                                 delegate?.updateStatusLabel(
-                                    "There are insufficient AI Horde workers to generate new images, waiting")
+                                    "There are insufficient AI Horde workers to generate new images, waiting"
+                                )
                             } else if requestResponse.processing == 0 {
                                 if requestResponse.queuePosition > 0 {
                                     delegate?.updateStatusLabel(
                                         "Waiting (Currently #\(requestResponse.queuePosition) in queue)"
                                     )
                                 } else {
-                                    delegate?.updateStatusLabel("Waiting for a worker to begin generating images")
+                                    delegate?.updateStatusLabel(
+                                        "Waiting for a worker to begin generating images"
+                                    )
                                 }
                             } else {
                                 delegate?.updateStatusLabel(
-                                    "Images are being generated by the AI Horde")
+                                    "Images are being generated by the AI Horde"
+                                )
                             }
                         }
                     } catch APIError.requestTimedOut {
@@ -291,7 +301,7 @@ extension EalainView {
                             "Uknown error occurred when polling horde? \(error)"
                         )
                     }
-                    
+
                     do {
                         try await Task.sleep(nanoseconds: 5_000_000_000)
                     } catch {
@@ -299,15 +309,15 @@ extension EalainView {
                     }
                 }
             }
-            
+
             do {
                 try await Task.sleep(nanoseconds: 5_000_000_000)
             } catch {
                 Log.error("Could not sleep for extra 5 seconds!")
             }
-            
+
             currentlyGenerating = false
-            
+
         }
 
         //        private func fetchFreshImageUrls(firstLaunch: Bool = false) {

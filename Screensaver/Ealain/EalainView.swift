@@ -37,7 +37,7 @@ class EalainView: ScreenSaverView {
         statusLabel.textColor = .white
         statusLabel.font = .systemFont(ofSize: 16, weight: .medium)
         statusLabel.sizeToFit()
-        statusLabel.alphaValue = 0
+        statusLabelView.layer?.opacity = 0
 
         statusLabelShadow.shadowColor = NSColor.black
         statusLabelShadow.shadowOffset = CGSize(width: 2, height: 2)
@@ -51,6 +51,7 @@ class EalainView: ScreenSaverView {
             object: nil)
 
         updateOrientation()
+        
         viewModel?.start()
     }
 
@@ -85,7 +86,6 @@ class EalainView: ScreenSaverView {
     }
 
     override func animateOneFrame() {
-        super.animateOneFrame()
         viewModel?.animateOneFrame()
     }
 
@@ -150,49 +150,53 @@ class EalainView: ScreenSaverView {
 extension EalainView: EalainView.ViewModelDelegate {
 
     func updateStatusLabel(_ text: String) {
-        DispatchQueue.main.async { [self] in
-            fadeOutTimer?.invalidate()
-            fadeOutTimer = nil
-            statusLabel.layer?.removeAllAnimations()
-
-            statusLabel.stringValue = text
-            NSAnimationContext.runAnimationGroup { context in
-                context.duration = 1
-                statusLabel.animator().alphaValue = 1.0
-            }
-
-            fadeOutTimer = Timer.scheduledTimer(
-                timeInterval: 5.0, target: self,
-                selector: #selector(fadeOutStatusLabel), userInfo: nil,
-                repeats: false)
-        }
+//        fadeOutTimer?.invalidate()
+//        fadeOutTimer = nil
+//        statusLabelView.layer?.removeAllAnimations()
+//
+//        statusLabel.stringValue = text
+//        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+//        animation.fromValue = statusLabelView.layer?.opacity ?? 0.0
+//        animation.toValue = 1.0
+//        animation.duration = 1
+//        animation.timingFunction = CAMediaTimingFunction(
+//            name: .easeInEaseOut)
+//        statusLabelView.layer?.opacity = 1
+//        statusLabelView.layer?.add(animation, forKey: "fade")
+//
+//        fadeOutTimer = Timer.scheduledTimer(
+//            timeInterval: 5.0, target: self,
+//            selector: #selector(fadeOutStatusLabel), userInfo: nil,
+//            repeats: false)
     }
 
     @objc private func fadeOutStatusLabel() {
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 1
-            statusLabel.animator().alphaValue = 0.0
-        }
+        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+        animation.fromValue = statusLabelView.layer?.opacity ?? 1.0
+        animation.toValue = 0
+        animation.duration = 1
+        animation.timingFunction = CAMediaTimingFunction(
+            name: .easeInEaseOut)
+        statusLabelView.layer?.opacity = 0
+        statusLabelView.layer?.add(animation, forKey: "fade")
     }
 
     internal func swapHiddenImage() {
-        DispatchQueue.main.async { [self] in
-            if bottomImageView.layer?.opacity == 0.0 {
-                if let url = viewModel?.getImageUrl() {
-                    bottomImageView.loadImage(url: url)
-                    Log.debug("Swapped Bottom Image")
-                    self.showBottomImage()
-                }
-            } else if topImageView.layer?.opacity == 1.0 {
-                if let url = viewModel?.getImageUrl() {
-                    bottomImageView.loadImage(url: url)
-                    Log.debug("Swapped Bottom Image")
-                }
-            } else if topImageView.layer?.opacity == 0.0 {
-                if let url = viewModel?.getImageUrl() {
-                    topImageView.loadImage(url: url)
-                    Log.debug("Swapped Top Image")
-                }
+        if bottomImageView.layer?.opacity == 0.0 {
+            if let url = viewModel?.getImageUrl() {
+                bottomImageView.loadImage(url: url)
+                Log.debug("Swapped Bottom Image")
+                self.showBottomImage()
+            }
+        } else if topImageView.layer?.opacity == 1.0 {
+            if let url = viewModel?.getImageUrl() {
+                bottomImageView.loadImage(url: url)
+                Log.debug("Swapped Bottom Image")
+            }
+        } else if topImageView.layer?.opacity == 0.0 {
+            if let url = viewModel?.getImageUrl() {
+                topImageView.loadImage(url: url)
+                Log.debug("Swapped Top Image")
             }
         }
     }

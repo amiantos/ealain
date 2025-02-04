@@ -7,9 +7,9 @@
 
 import Foundation
 
-enum Orientation {
-    case portrait
-    case landscape
+enum Orientation: String {
+    case portrait = "portrait"
+    case landscape = "landscape"
 }
 
 enum ImageType {
@@ -37,7 +37,9 @@ extension EalainView {
         var urlRefreshCounter: Int = 0
 
         var urls: [String] = []
-        var recentUrls: [String] = []
+        var recentlyUsedUrls: [String] = []
+        
+        var currentlyGenerating: Bool = false
 
         init(delegate: ViewModelDelegate? = nil) {
             self.delegate = delegate
@@ -47,20 +49,41 @@ extension EalainView {
             if self.orientation == orientation {
                 return
             }
-
+            
             self.orientation = orientation
             Log.debug("Orientation changed to \(orientation)!")
         }
+        
+        func updateCurrentUrlStrings() {
+            do {
+                urls = try getCurrentImageUrlStrings()
+            } catch {
+                Log.error(error.localizedDescription)
+            }
+        }
 
+        func start() {
+            Log.debug("ViewModel start!")
+            
+            while true {
+                updateCurrentUrlStrings()
+                if urls.count < 2 {
+                    Task {
+                        await generateNewImages()
+                    }
+                } else {
+                    delegate?.swapHiddenImage()
+                    break
+                }
+            }
+        }
+        
         func animateOneFrame() {
             frameCounter += 1
             urlRefreshCounter += 1
 
             if frameCounter == 20 * framesPerSecond {
                 Log.debug("20 seconds has passed")
-                if !urls.isEmpty {
-                    self.delegate?.swapImageViews()
-                }
                 frameCounter = 0
             }
 
@@ -70,30 +93,6 @@ extension EalainView {
             }
         }
 
-        func start() {
-            Log.debug("ViewModel start!")
-
-            do {
-                let imageUrls = try getAllImageUrls()
-                print("Image URLs: \(imageUrls)")
-                urls = imageUrls
-                if urls.isEmpty {
-                    Task {
-                        await getRandomImage()
-                    }
-                } else {
-                    delegate?.swapHiddenImage()
-                    delegate?.updateStatusLabel("")
-                    if urls.count < 100 {
-                        Task {
-                            await getRandomImage()
-                        }
-                    }
-                }
-            } catch {
-                print("Error retrieving image URLs: \(error)")
-            }
-        }
 
         func getImagesFolderURL() throws -> URL {
             let fileManager = FileManager.default
@@ -111,7 +110,7 @@ extension EalainView {
                     ])
             }
 
-            let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain")
+            let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain").appendingPathComponent(self.orientation.rawValue)
             try fileManager.createDirectory(
                 at: imagesFolderURL, withIntermediateDirectories: true,
                 attributes: nil)
@@ -119,10 +118,10 @@ extension EalainView {
             return imagesFolderURL
         }
 
-        func saveImageFromUrlString(_ urlString: String) async {
+        func saveImageFromUrlString(_ urlString: String) async -> Bool {
             guard let url = URL(string: urlString) else {
                 print("Invalid URL: \(urlString)")
-                return
+                return false
             }
 
             do {
@@ -145,22 +144,15 @@ extension EalainView {
 
                 Log.debug("Image saved to: \(fileURL.path)")
 
-                // Update URLs (assuming `urls` is globally accessible)
-                if !urls.isEmpty {
-                    urls.append(fileURL.absoluteString)
-                } else {
-                    urls.append(fileURL.absoluteString)
-                    DispatchQueue.main.async {
-                        self.delegate?.swapHiddenImage()
-                    }
-                }
+                return true
             } catch {
                 Log.error("Error saving image: \(error)")
             }
-            return
+            
+            return false
         }
 
-        func getAllImageUrls() throws -> [String] {
+        func getCurrentImageUrlStrings() throws -> [String] {
             let fileManager = FileManager.default
             let imagesFolderURL = try getImagesFolderURL()  // Reuse the function
 
@@ -182,7 +174,12 @@ extension EalainView {
             }
         }
 
-        func getRandomImage() async {
+        func generateNewImages() async{
+            if currentlyGenerating {
+                return
+            }
+            
+            currentlyGenerating = true
             var currentRequestUUID: UUID?
 
             do {
@@ -237,15 +234,9 @@ extension EalainView {
                             {
                                 delegate?.updateStatusLabel(
                                     "Storing new images...")
-                                Log.debug(generations)
                                 for generation in generations {
-                                    Log.debug(generation.img)
-                                    await saveImageFromUrlString(generation.img)
+                                    _ = await saveImageFromUrlString(generation.img)
                                 }
-                                if urls.count < 100 {
-                                    await getRandomImage()
-                                }
-                                break
                             }
                             break
                         } else {
@@ -289,6 +280,7 @@ extension EalainView {
                     }
                 }
             }
+            currentlyGenerating = false
         }
 
         //        private func fetchFreshImageUrls(firstLaunch: Bool = false) {
@@ -317,22 +309,22 @@ extension EalainView {
                 return urls[0]
             }
 
-            if recentUrls.count == urls.count {
+            if recentlyUsedUrls.count == urls.count {
                 Log.debug(
                     "Image list exahusted, pruning recent urls by half...")
-                recentUrls.removeFirst(recentUrls.count / 2)
+                recentlyUsedUrls.removeFirst(recentlyUsedUrls.count / 2)
             }
 
             guard var newUrl = urls.randomElement() else {
                 fatalError("Failed to fetch a random image URL from the list!")
             }
 
-            while recentUrls.contains(newUrl) {
+            while recentlyUsedUrls.contains(newUrl) {
                 guard let anotherUrl = urls.randomElement() else { break }
                 newUrl = anotherUrl
             }
 
-            recentUrls.append(newUrl)
+            recentlyUsedUrls.append(newUrl)
             return newUrl
         }
 

@@ -100,6 +100,46 @@ class EalainView: ScreenSaverView {
             viewModel.setOrientation(.landscape)
         }
     }
+    
+    private func showBottomImage() {
+        let animation = CABasicAnimation(
+            keyPath: #keyPath(CALayer.opacity))
+        animation.fromValue = 0.0
+        animation.toValue = 1.0
+        animation.duration = 5.0
+        animation.timingFunction = CAMediaTimingFunction(
+            name: .easeInEaseOut)
+        animation.delegate = self
+        self.bottomImageView.layer?.opacity = 1
+        self.bottomImageView.layer?.add(animation, forKey: "fade")
+        Log.debug("Displaying Bottom Image")
+    }
+
+    private func showTopImage() {
+        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+        animation.fromValue = 0.0
+        animation.toValue = 1.0
+        animation.duration = 5.0
+        animation.timingFunction = CAMediaTimingFunction(
+            name: .easeInEaseOut)
+        animation.delegate = self
+        topImageView.layer?.opacity = 1
+        topImageView.layer?.add(animation, forKey: "fade")
+        Log.debug("Displaying Top Image")
+    }
+    
+    private func hideTopImage() {
+        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+        animation.fromValue = 1.0
+        animation.toValue = 0.0
+        animation.duration = 5.0
+        animation.timingFunction = CAMediaTimingFunction(
+            name: .easeInEaseOut)
+        animation.delegate = self
+        topImageView.layer?.opacity = 0
+        topImageView.layer?.add(animation, forKey: "fade")
+        Log.debug("Hiding Top Image")
+    }
 
 }
 
@@ -110,25 +150,12 @@ extension EalainView: EalainView.ViewModelDelegate {
             self.statusLabel.stringValue = text
         }
     }
-
+    
     internal func swapHiddenImage() {
         if bottomImageView.layer?.opacity == 0.0 {
             bottomImageView.loadImage(url: viewModel.getImageUrl())
             Log.debug("Swapped Bottom Image")
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                let animation = CABasicAnimation(
-                    keyPath: #keyPath(CALayer.opacity))
-                animation.fromValue = 0.0
-                animation.toValue = 1.0
-                animation.duration = 5.0
-                animation.timingFunction = CAMediaTimingFunction(
-                    name: .easeInEaseOut)
-                animation.delegate = self
-                self.bottomImageView.layer?.opacity = 1
-                self.bottomImageView.layer?.add(animation, forKey: "fade")
-                Log.debug("Displaying Bottom Image")
-            }
+            self.showBottomImage()
         } else if topImageView.layer?.opacity == 1.0 {
             bottomImageView.loadImage(url: viewModel.getImageUrl())
             Log.debug("Swapped Bottom Image")
@@ -137,31 +164,13 @@ extension EalainView: EalainView.ViewModelDelegate {
             Log.debug("Swapped Top Image")
         }
     }
-
+    
     internal func swapImageViews() {
         Log.debug("Swapping images...")
         if topImageView.layer?.opacity ?? 0.0 < 1 {
-            let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
-            animation.fromValue = 0.0
-            animation.toValue = 1.0
-            animation.duration = 5.0
-            animation.timingFunction = CAMediaTimingFunction(
-                name: .easeInEaseOut)
-            animation.delegate = self
-            topImageView.layer?.opacity = 1
-            topImageView.layer?.add(animation, forKey: "fade")
-            Log.debug("Displaying Top Image")
+            showTopImage()
         } else {
-            let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
-            animation.fromValue = 1.0
-            animation.toValue = 0.0
-            animation.duration = 5.0
-            animation.timingFunction = CAMediaTimingFunction(
-                name: .easeInEaseOut)
-            animation.delegate = self
-            topImageView.layer?.opacity = 0
-            topImageView.layer?.add(animation, forKey: "fade")
-            Log.debug("Hiding Top Image")
+            hideTopImage()
         }
     }
 }

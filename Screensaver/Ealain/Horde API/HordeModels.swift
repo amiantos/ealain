@@ -54,8 +54,10 @@ struct HordeCheckRequestResponse: Codable {
 
 struct HordeGeneration: Codable {
     let img: String
+    let censored: Bool
 
     enum CodingKeys: String, CodingKey {
         case img
+        case censored
     }
 }

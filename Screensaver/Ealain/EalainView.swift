@@ -409,8 +409,10 @@ class EalainView: ScreenSaverView {
                                 "Storing new images downloaded from the AI Horde"
                             )
                             for generation in generations {
-                                _ = await saveImageFromUrlString(
-                                    generation.img)
+                                if !generation.censored {
+                                    _ = await saveImageFromUrlString(
+                                        generation.img)
+                                }
                             }
                         }
                         break

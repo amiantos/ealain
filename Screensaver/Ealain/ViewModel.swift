@@ -25,21 +25,21 @@ protocol ViewModelDelegate {
 
 @MainActor
 class ViewModel {
-    let hordeAPI: HordeAPI = .init()
-    var delegate: ViewModelDelegate?
+    private let hordeAPI: HordeAPI = .init()
+    private var delegate: ViewModelDelegate?
 
-    let hordeApiKey: String = "0000000000"
+    private  let hordeApiKey: String = "0000000000"
 
-    let framesPerSecond: Int = 30
-    var orientation: Orientation = .landscape
+    private let framesPerSecond: Int = 30
+    private var orientation: Orientation = .landscape
 
-    var frameCounter: Int = 0
-    var urlRefreshCounter: Int = 0
+    private var frameCounter: Int = 0
+    private var urlRefreshCounter: Int = 0
 
     var urls: [String] = []
-    var recentlyUsedUrls: [String] = []
+    private var recentlyUsedUrls: [String] = []
 
-    var currentlyGenerating: Bool = false
+    private var currentlyGenerating: Bool = false
 
     init(delegate: ViewModelDelegate? = nil) {
         self.delegate = delegate
@@ -86,24 +86,6 @@ class ViewModel {
                     // Check for old images and delete them
                 }
             }
-        }
-    }
-
-    func animationStopped() {
-        Log.debug("Fade animation complete")
-        delegate?.swapHiddenImage()
-        frameCounter = 0
-    }
-
-    func animateOneFrame() {
-        frameCounter += 1
-
-        if frameCounter == 20 * framesPerSecond {
-            Log.debug("20 seconds has passed")
-            if urls.count > 2 {
-                delegate?.swapImageViews()
-            }
-            frameCounter = 0
         }
     }
 

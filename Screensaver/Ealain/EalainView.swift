@@ -29,9 +29,21 @@ class EalainView: ScreenSaverView {
 
     private var animationRunning: Bool = false
 
-    private var currentlyGenerating: Bool = false
+    private var currentlyGenerating: Bool = false {
+        didSet {
+            if !currentlyGenerating && !firstImageDisplayed {
+                swapHiddenImage()
+            }
+        }
+    }
 
     private var swapTimer: Timer?
+    
+    private var firstImageDisplayed: Bool = false {
+        didSet {
+            Log.debug("First image displayed!")
+        }
+    }
 
     override init?(frame: CGRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
@@ -121,7 +133,6 @@ class EalainView: ScreenSaverView {
                 await generateNewImages()
             }
         }
-
     }
 
     @objc fileprivate func willStop(_ aNotification: Notification) {
@@ -499,6 +510,9 @@ class EalainView: ScreenSaverView {
         }
 
         recentlyUsedUrls.append(newUrl)
+        if !firstImageDisplayed {
+            firstImageDisplayed = true
+        }
         return newUrl
     }
 }

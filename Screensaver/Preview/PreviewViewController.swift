@@ -12,7 +12,7 @@ class PreviewViewController: NSViewController {
     }
 
     override func loadView() {
-        screensaverView = EalainView(frame: CGRect.zero, isPreview: true)
+        screensaverView = EalainView(frame: CGRect.zero, isPreview: false)
         self.view = screensaverView ?? NSView()
     }
 

@@ -19,9 +19,7 @@ class EalainImageView: NSView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func loadImage(url: String) {
-        guard let url = URL(string: url) else { return }
-
+    func loadImage(url: URL) {
         DispatchQueue.global(qos: .background).async {
             if let data = try? Data(contentsOf: url),
                 let image = NSImage(data: data)

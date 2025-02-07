@@ -13,8 +13,10 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     private let hordeAPI: HordeAPI = .init()
     private let hordeApiKey: String = "0000000000"
 
-    private var urls: [String] = []
-    private var recentlyUsedUrls: [String] = []
+    private var urls: [URL] = []
+    private var recentlyUsedUrls: [URL] = []
+    private var currentTopImageUrl: URL?
+    private var currentBottomImageUrl: URL?
 
     private var orientation: Orientation = .landscape {
         didSet {
@@ -42,12 +44,23 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             }
         }
     }
+    
+    private var currentlyPruning: Bool = false
+    
+    private var pruneTimer: Timer?
 
     private var swapTimer: Timer?
 
     private var firstImageDisplayed: Bool = false {
         didSet {
-            Log.debug("First image displayed!")
+            if firstImageDisplayed == true {
+                Log.debug("First image displayed!")
+                
+                pruneTimer = Timer.scheduledTimer(
+                    timeInterval: 5, target: self,
+                    selector: #selector(pruneOldImages), userInfo: nil,
+                    repeats: false)
+            }
         }
     }
 
@@ -172,7 +185,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
     private func updateCurrentUrlStrings(firstLaunch: Bool) {
         do {
-            urls = try getCurrentImageUrlStrings()
+            urls = try getCurrentImageUrls()
             if firstLaunch {
                 swapHiddenImage()
             }
@@ -185,17 +198,20 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         if bottomImageView.layer?.opacity == 0.0 {
             if let url = getImageUrl() {
                 bottomImageView.loadImage(url: url)
+                currentBottomImageUrl = url
                 Log.debug("Swapped Bottom Image")
                 self.showBottomImage()
             }
         } else if topImageView.layer?.opacity == 1.0 {
             if let url = getImageUrl() {
                 bottomImageView.loadImage(url: url)
+                currentBottomImageUrl = url
                 Log.debug("Swapped Bottom Image")
             }
         } else if topImageView.layer?.opacity == 0.0 {
             if let url = getImageUrl() {
                 topImageView.loadImage(url: url)
+                currentTopImageUrl = url
                 Log.debug("Swapped Top Image")
             }
         }
@@ -238,7 +254,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         return imagesFolderURL
     }
 
-    private func getCurrentImageUrlStrings() throws -> [String] {
+    private func getCurrentImageUrls() throws -> [URL] {
         let fileManager = FileManager.default
         let imagesFolderURL = try getImagesFolderURL()  // Reuse the function
 
@@ -249,7 +265,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                 options: .skipsHiddenFiles)
 
             // Convert to an array of string paths
-            return fileURLs.map { $0.absoluteString }.sorted()
+            return fileURLs.sorted { $0.absoluteString < $1.absoluteString }
         } catch {
             throw NSError(
                 domain: "FileManagerError", code: 2,
@@ -260,7 +276,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         }
     }
 
-    private func getImageUrl() -> String? {
+    private func getImageUrl() -> URL? {
         if urls.count < 2 {
             return nil
         }
@@ -543,5 +559,57 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         }
 
         return false
+    }
+    
+    
+    @objc private func pruneOldImages() {
+        DispatchQueue.global(qos: .background).async { [self] in
+            if !currentlyPruning && !isPreview && urls.count >= 100 {
+                currentlyPruning = true
+                
+                Log.debug("Pruning old images...")
+                
+                do {
+                    let fileManager = FileManager.default
+                    let imagesFolderURL = try getImagesFolderURL()  // Reuse the function
+                    // Get contents of the directory
+                    let fileURLs = try fileManager.contentsOfDirectory(
+                        at: imagesFolderURL, includingPropertiesForKeys: nil,
+                        options: .skipsHiddenFiles)
+                    Log.debug("Sorting...")
+                    // Sort file URLs alphabetically/numerically
+                    let filteredUrls = fileURLs.filter { $0 != currentTopImageUrl && $0 != currentBottomImageUrl }
+                    let sortedUrls = filteredUrls.sorted { $0.absoluteString < $1.absoluteString }
+                    let filesToDelete = Array(sortedUrls.prefix(2))
+                    
+                    Log.debug("Deleting...")
+                    for fileURL in filesToDelete {
+                        do {
+                            try fileManager.removeItem(at: fileURL)
+                            updateCurrentUrlStrings(firstLaunch: false)
+                        } catch {
+                            Log.error("Unable to delete cached image file: \(error.localizedDescription)")
+                        }
+                    }
+                    
+                    Log.debug("All deleted...")
+                } catch {
+                    Log.error("Unable to fetch file urls to prune.")
+                }
+                
+                currentlyPruning = false
+            }
+            
+            Log.debug("Setting new timer...")
+            
+            DispatchQueue.main.async { [self] in
+                pruneTimer = Timer.scheduledTimer(
+                    timeInterval: 1980, target: self,
+                    selector: #selector(pruneOldImages), userInfo: nil,
+                    repeats: false)
+            }
+            
+            Log.debug("New timer set.")
+        }
     }
 }

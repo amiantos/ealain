@@ -17,6 +17,8 @@ struct HordeRequest: Codable {
 
 struct HordeParams: Codable {
     let n: Int
+    let width: Int
+    let height: Int
 }
 
 struct HordeRequestResponse: Codable {

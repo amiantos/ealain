@@ -6,7 +6,9 @@ enum Orientation: String {
     case landscape = "landscape"
 }
 
-class EalainView: ScreenSaverView {
+class EalainView: ScreenSaverView, CAAnimationDelegate {
+    
+    private let styleIds: [Orientation: String] = [.landscape: "5d982e0a-8324-412a-b025-8c8f90b665a9", .portrait : "1b55e180-4d29-41a3-ac35-effec38a75c5"]
 
     private let hordeAPI: HordeAPI = .init()
     private let hordeApiKey: String = "0000000000"
@@ -14,7 +16,11 @@ class EalainView: ScreenSaverView {
     private var urls: [String] = []
     private var recentlyUsedUrls: [String] = []
 
-    private var orientation: Orientation = .landscape
+    private var orientation: Orientation = .landscape {
+        didSet {
+            Log.debug("Orientaion changed to \(orientation)")
+        }
+    }
 
     private let bottomImageView = EalainImageView()
     private let topImageView = EalainImageView()
@@ -38,12 +44,14 @@ class EalainView: ScreenSaverView {
     }
 
     private var swapTimer: Timer?
-    
+
     private var firstImageDisplayed: Bool = false {
         didSet {
             Log.debug("First image displayed!")
         }
     }
+
+    // MARK: - Overrides
 
     override init?(frame: CGRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
@@ -109,7 +117,28 @@ class EalainView: ScreenSaverView {
         statusLabel.frame.origin = CGPoint(x: 10, y: 10)
     }
 
-    func animationStopped() {
+    override func animateOneFrame() {
+        updateCurrentUrlStrings(firstLaunch: false)
+
+        if urls.count < 100 {
+            Task {
+                await generateNewImages()
+            }
+        }
+    }
+
+    // MARK: - CAAnimationDelegate
+
+    func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
+        if flag {
+            animationStopped()
+            animationRunning = false
+        }
+    }
+
+    // MARK: - Animation Lifecycle
+
+    private func animationStopped() {
         Log.debug("Fade animation complete")
         swapHiddenImage()
 
@@ -123,16 +152,6 @@ class EalainView: ScreenSaverView {
     @objc private func triggerSwapImageViews() {
         Log.debug("15 seconds have passed, swapping images")
         swapImageViews()
-    }
-
-    override func animateOneFrame() {
-        updateCurrentUrlStrings(firstLaunch: false)
-
-        if urls.count < 100 {
-            Task {
-                await generateNewImages()
-            }
-        }
     }
 
     @objc fileprivate func willStop(_ aNotification: Notification) {
@@ -151,7 +170,7 @@ class EalainView: ScreenSaverView {
         }
     }
 
-    func updateCurrentUrlStrings(firstLaunch: Bool) {
+    private func updateCurrentUrlStrings(firstLaunch: Bool) {
         do {
             urls = try getCurrentImageUrlStrings()
             if firstLaunch {
@@ -160,6 +179,115 @@ class EalainView: ScreenSaverView {
         } catch {
             Log.error(error.localizedDescription)
         }
+    }
+
+    private func swapHiddenImage() {
+        if bottomImageView.layer?.opacity == 0.0 {
+            if let url = getImageUrl() {
+                bottomImageView.loadImage(url: url)
+                Log.debug("Swapped Bottom Image")
+                self.showBottomImage()
+            }
+        } else if topImageView.layer?.opacity == 1.0 {
+            if let url = getImageUrl() {
+                bottomImageView.loadImage(url: url)
+                Log.debug("Swapped Bottom Image")
+            }
+        } else if topImageView.layer?.opacity == 0.0 {
+            if let url = getImageUrl() {
+                topImageView.loadImage(url: url)
+                Log.debug("Swapped Top Image")
+            }
+        }
+    }
+
+    private func swapImageViews() {
+        guard !animationRunning else { return }
+
+        animationRunning = true
+
+        if topImageView.layer?.opacity ?? 0.0 == 0.0 {
+            showTopImage()
+        } else if topImageView.layer?.opacity ?? 0.0 == 1.0 {
+            hideTopImage()
+        }
+    }
+
+    private func getImagesFolderURL() throws -> URL {
+        let fileManager = FileManager.default
+
+        guard
+            let appSupportURL = fileManager.urls(
+                for: .applicationSupportDirectory, in: .userDomainMask
+            ).first
+        else {
+            throw NSError(
+                domain: "FileManagerError", code: 1,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Failed to locate Application Support directory"
+                ])
+        }
+
+        let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain")
+            .appendingPathComponent(self.orientation.rawValue)
+        try fileManager.createDirectory(
+            at: imagesFolderURL, withIntermediateDirectories: true,
+            attributes: nil)
+
+        return imagesFolderURL
+    }
+
+    private func getCurrentImageUrlStrings() throws -> [String] {
+        let fileManager = FileManager.default
+        let imagesFolderURL = try getImagesFolderURL()  // Reuse the function
+
+        do {
+            // Get contents of the directory
+            let fileURLs = try fileManager.contentsOfDirectory(
+                at: imagesFolderURL, includingPropertiesForKeys: nil,
+                options: .skipsHiddenFiles)
+
+            // Convert to an array of string paths
+            return fileURLs.map { $0.absoluteString }.sorted()
+        } catch {
+            throw NSError(
+                domain: "FileManagerError", code: 2,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Failed to fetch image URLs: \(error)"
+                ])
+        }
+    }
+
+    private func getImageUrl() -> String? {
+        if urls.count < 2 {
+            return nil
+        }
+        if urls.count == 1 {
+            return urls[0]
+        }
+
+        if recentlyUsedUrls.count == urls.count {
+            Log.debug(
+                "Image list exahusted, pruning recent urls by half")
+            recentlyUsedUrls.removeFirst(recentlyUsedUrls.count / 2)
+        }
+
+        guard var newUrl = urls.randomElement() else {
+            fatalError("Failed to fetch a random image URL from the list!")
+        }
+
+        while recentlyUsedUrls.contains(newUrl) {
+            guard let anotherUrl = urls.randomElement() else { break }
+            newUrl = anotherUrl
+        }
+
+        recentlyUsedUrls.append(newUrl)
+        if !firstImageDisplayed {
+            firstImageDisplayed = true
+        }
+        return newUrl
     }
 
     private func showBottomImage() {
@@ -202,7 +330,7 @@ class EalainView: ScreenSaverView {
         Log.debug("Hiding Top Image")
     }
 
-    internal func updateStatusLabel(_ text: String) {
+    private func updateStatusLabel(_ text: String) {
         fadeOutTimer?.invalidate()
         fadeOutTimer = nil
         statusLabelView.layer?.removeAllAnimations()
@@ -234,127 +362,13 @@ class EalainView: ScreenSaverView {
         statusLabelView.layer?.opacity = 0
     }
 
-    internal func swapHiddenImage() {
-        if bottomImageView.layer?.opacity == 0.0 {
-            if let url = getImageUrl() {
-                bottomImageView.loadImage(url: url)
-                Log.debug("Swapped Bottom Image")
-                self.showBottomImage()
-            }
-        } else if topImageView.layer?.opacity == 1.0 {
-            if let url = getImageUrl() {
-                bottomImageView.loadImage(url: url)
-                Log.debug("Swapped Bottom Image")
-            }
-        } else if topImageView.layer?.opacity == 0.0 {
-            if let url = getImageUrl() {
-                topImageView.loadImage(url: url)
-                Log.debug("Swapped Top Image")
-            }
-        }
-    }
+    // MARK: - Image Generation
 
-    internal func swapImageViews() {
-        guard !animationRunning else { return }
-
-        animationRunning = true
-
-        if topImageView.layer?.opacity ?? 0.0 == 0.0 {
-            showTopImage()
-        } else if topImageView.layer?.opacity ?? 0.0 == 1.0 {
-            hideTopImage()
-        }
-    }
-
-    func getImagesFolderURL() throws -> URL {
-        let fileManager = FileManager.default
-
-        guard
-            let appSupportURL = fileManager.urls(
-                for: .applicationSupportDirectory, in: .userDomainMask
-            ).first
-        else {
-            throw NSError(
-                domain: "FileManagerError", code: 1,
-                userInfo: [
-                    NSLocalizedDescriptionKey:
-                        "Failed to locate Application Support directory"
-                ])
-        }
-
-        let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain")
-            .appendingPathComponent(self.orientation.rawValue)
-        try fileManager.createDirectory(
-            at: imagesFolderURL, withIntermediateDirectories: true,
-            attributes: nil)
-
-        return imagesFolderURL
-    }
-
-    func saveImageFromUrlString(_ urlString: String) async -> Bool {
-        guard let url = URL(string: urlString) else {
-            print("Invalid URL: \(urlString)")
-            return false
-        }
-
-        do {
-            // Fetch image data asynchronously
-            let (data, _) = try await URLSession.shared.data(from: url)
-
-            // Get the images folder path
-            let imagesFolderURL = try getImagesFolderURL()
-
-            // Determine file name and path
-            let timestamp = Int(Date().timeIntervalSince1970)
-            let originalFileName = url.deletingPathExtension()
-                .lastPathComponent  // Remove extension from original name
-            let fileExtension =
-                url.pathExtension.isEmpty ? "webp" : url.pathExtension  // Default to .webp if no extension
-            let fileName =
-                "\(timestamp)-\(originalFileName).\(fileExtension)"
-
-            let fileURL = imagesFolderURL.appendingPathComponent(fileName)
-
-            // Write data to file
-            try data.write(to: fileURL)
-
-            Log.debug("Image saved to: \(fileURL.path)")
-
-            return true
-        } catch {
-            Log.error("Error saving image: \(error)")
-        }
-
-        return false
-    }
-
-    func getCurrentImageUrlStrings() throws -> [String] {
-        let fileManager = FileManager.default
-        let imagesFolderURL = try getImagesFolderURL()  // Reuse the function
-
-        do {
-            // Get contents of the directory
-            let fileURLs = try fileManager.contentsOfDirectory(
-                at: imagesFolderURL, includingPropertiesForKeys: nil,
-                options: .skipsHiddenFiles)
-
-            // Convert to an array of string paths
-            return fileURLs.map { $0.absoluteString }.sorted()
-        } catch {
-            throw NSError(
-                domain: "FileManagerError", code: 2,
-                userInfo: [
-                    NSLocalizedDescriptionKey:
-                        "Failed to fetch image URLs: \(error)"
-                ])
-        }
-    }
-
-    func generateNewImages() async {
+    private func generateNewImages() async {
         if currentlyGenerating {
             return
         }
-        
+
         if isPreview {
             updateStatusLabel("Preview Mode")
             return
@@ -364,14 +378,28 @@ class EalainView: ScreenSaverView {
         var currentRequestUUID: UUID?
 
         do {
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+        } catch {
+            Log.error("Could not sleep for extra 5 seconds!")
+        }
+
+        do {
             updateStatusLabel(
                 "Requesting new images from the AI Horde")
+            updateOrientation()
+            let params = HordeParams(
+                n: 2,
+                width: self.orientation == .landscape ? 1024 : 576,
+                height: self.orientation == .landscape ? 576 : 1024)
+            let styleId = styleIds[orientation]!
+            let request = HordeRequest(
+                prompt: " ",
+                style: styleId,
+                params: params)
+            Log.debug(params)
             let requestResponse = try await hordeAPI.submitRequest(
                 apiKey: hordeApiKey,
-                request: HordeRequest(
-                    prompt: " ",
-                    style: "fb8abfab-e3cd-4790-8460-fe82cc7e44c0",
-                    params: HordeParams(n: 2)))
+                request: request)
             currentRequestUUID = requestResponse.id
             Log.debug(
                 "New generation request ID: \(String(describing: currentRequestUUID))"
@@ -476,52 +504,44 @@ class EalainView: ScreenSaverView {
             }
         }
 
-        do {
-            try await Task.sleep(nanoseconds: 5_000_000_000)
-        } catch {
-            Log.error("Could not sleep for extra 5 seconds!")
-        }
-
         currentlyGenerating = false
 
     }
 
-    func getImageUrl() -> String? {
-        if urls.count < 2 {
-            return nil
-        }
-        if urls.count == 1 {
-            return urls[0]
+    private func saveImageFromUrlString(_ urlString: String) async -> Bool {
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL: \(urlString)")
+            return false
         }
 
-        if recentlyUsedUrls.count == urls.count {
-            Log.debug(
-                "Image list exahusted, pruning recent urls by half")
-            recentlyUsedUrls.removeFirst(recentlyUsedUrls.count / 2)
+        do {
+            // Fetch image data asynchronously
+            let (data, _) = try await URLSession.shared.data(from: url)
+
+            // Get the images folder path
+            let imagesFolderURL = try getImagesFolderURL()
+
+            // Determine file name and path
+            let timestamp = Int(Date().timeIntervalSince1970)
+            let originalFileName = url.deletingPathExtension()
+                .lastPathComponent  // Remove extension from original name
+            let fileExtension =
+                url.pathExtension.isEmpty ? "webp" : url.pathExtension  // Default to .webp if no extension
+            let fileName =
+                "\(timestamp)-\(originalFileName).\(fileExtension)"
+
+            let fileURL = imagesFolderURL.appendingPathComponent(fileName)
+
+            // Write data to file
+            try data.write(to: fileURL)
+
+            Log.debug("Image saved to: \(fileURL.path)")
+
+            return true
+        } catch {
+            Log.error("Error saving image: \(error)")
         }
 
-        guard var newUrl = urls.randomElement() else {
-            fatalError("Failed to fetch a random image URL from the list!")
-        }
-
-        while recentlyUsedUrls.contains(newUrl) {
-            guard let anotherUrl = urls.randomElement() else { break }
-            newUrl = anotherUrl
-        }
-
-        recentlyUsedUrls.append(newUrl)
-        if !firstImageDisplayed {
-            firstImageDisplayed = true
-        }
-        return newUrl
-    }
-}
-
-extension EalainView: CAAnimationDelegate {
-    func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-        if flag {
-            animationStopped()
-            animationRunning = false
-        }
+        return false
     }
 }

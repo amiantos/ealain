@@ -7,6 +7,8 @@ enum Orientation: String {
 }
 
 class EalainView: ScreenSaverView, CAAnimationDelegate {
+    
+    lazy var sheetController: ConfigureSheetController = ConfigureSheetController()
 
     private let hordeAPI: HordeAPI = .init()
     private let hordeApiKey: String = "0000000000"
@@ -89,6 +91,14 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override var hasConfigureSheet: Bool {
+        return true
+    }
+    
+    override var configureSheet: NSWindow? {
+        return sheetController.window
     }
 
     override func draw(_ rect: NSRect) {

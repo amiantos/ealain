@@ -16,6 +16,12 @@
 		44198C1E2A3A6E66004F22D5 /* EalainImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */; };
 		44198C1F2A3A6E66004F22D5 /* EalainImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */; };
 		44198C202A3BC6EB004F22D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 44198C112A3A6D78004F22D5 /* Assets.xcassets */; };
+		443AA5A82D580C2D0034A27F /* ConfigureSheetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 443AA5A72D580C2D0034A27F /* ConfigureSheetController.swift */; };
+		443AA5A92D580C2D0034A27F /* ConfigureSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = 443AA5A62D580C2D0034A27F /* ConfigureSheet.xib */; };
+		443AA5AA2D580C2D0034A27F /* ConfigureSheetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 443AA5A72D580C2D0034A27F /* ConfigureSheetController.swift */; };
+		443AA5AB2D580C2D0034A27F /* ConfigureSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = 443AA5A62D580C2D0034A27F /* ConfigureSheet.xib */; };
+		443AA5AD2D580C6E0034A27F /* URLType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 443AA5AC2D580C6E0034A27F /* URLType.swift */; };
+		443AA5AE2D580C6E0034A27F /* URLType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 443AA5AC2D580C6E0034A27F /* URLType.swift */; };
 		44B823552D4F3662007FA594 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823542D4F3662007FA594 /* Logging.swift */; };
 		44B823562D4F3662007FA594 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823542D4F3662007FA594 /* Logging.swift */; };
 		44B8235C2D4F3B75007FA594 /* HordeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B823582D4F3B75007FA594 /* HordeModels.swift */; };
@@ -34,6 +40,9 @@
 		44198C162A3A6D78004F22D5 /* Preview.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Preview.entitlements; sourceTree = "<group>"; };
 		44198C1A2A3A6D99004F22D5 /* PreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewController.swift; sourceTree = "<group>"; };
 		44198C1D2A3A6E66004F22D5 /* EalainImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EalainImageView.swift; sourceTree = "<group>"; };
+		443AA5A62D580C2D0034A27F /* ConfigureSheet.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ConfigureSheet.xib; sourceTree = "<group>"; };
+		443AA5A72D580C2D0034A27F /* ConfigureSheetController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureSheetController.swift; sourceTree = "<group>"; };
+		443AA5AC2D580C6E0034A27F /* URLType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLType.swift; sourceTree = "<group>"; };
 		44B823542D4F3662007FA594 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		44B823572D4F3B75007FA594 /* HordeAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeAPI.swift; sourceTree = "<group>"; };
 		44B823582D4F3B75007FA594 /* HordeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HordeModels.swift; sourceTree = "<group>"; };
@@ -79,6 +88,7 @@
 		44198BFB2A3A6BB7004F22D5 /* Ealain */ = {
 			isa = PBXGroup;
 			children = (
+				443AA5AF2D580E020034A27F /* ConfigureSheet */,
 				44198C052A3A6C8B004F22D5 /* EalainView.swift */,
 				44B8235A2D4F3B75007FA594 /* Horde API */,
 				44B823542D4F3662007FA594 /* Logging.swift */,
@@ -96,6 +106,16 @@
 				44198C1A2A3A6D99004F22D5 /* PreviewViewController.swift */,
 			);
 			path = Preview;
+			sourceTree = "<group>";
+		};
+		443AA5AF2D580E020034A27F /* ConfigureSheet */ = {
+			isa = PBXGroup;
+			children = (
+				443AA5AC2D580C6E0034A27F /* URLType.swift */,
+				443AA5A62D580C2D0034A27F /* ConfigureSheet.xib */,
+				443AA5A72D580C2D0034A27F /* ConfigureSheetController.swift */,
+			);
+			path = ConfigureSheet;
 			sourceTree = "<group>";
 		};
 		44B8235A2D4F3B75007FA594 /* Horde API */ = {
@@ -198,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				443AA5A92D580C2D0034A27F /* ConfigureSheet.xib in Resources */,
 				44198C202A3BC6EB004F22D5 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -208,6 +229,7 @@
 			files = (
 				44198C122A3A6D78004F22D5 /* Assets.xcassets in Resources */,
 				44198C152A3A6D78004F22D5 /* MainMenu.xib in Resources */,
+				443AA5AB2D580C2D0034A27F /* ConfigureSheet.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,7 +243,9 @@
 				44198C062A3A6C8B004F22D5 /* EalainView.swift in Sources */,
 				44B823562D4F3662007FA594 /* Logging.swift in Sources */,
 				44198C1E2A3A6E66004F22D5 /* EalainImageView.swift in Sources */,
+				443AA5AD2D580C6E0034A27F /* URLType.swift in Sources */,
 				44B8235C2D4F3B75007FA594 /* HordeModels.swift in Sources */,
+				443AA5A82D580C2D0034A27F /* ConfigureSheetController.swift in Sources */,
 				44B8235D2D4F3B75007FA594 /* HordeAPI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -230,6 +254,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				443AA5AA2D580C2D0034A27F /* ConfigureSheetController.swift in Sources */,
+				443AA5AE2D580C6E0034A27F /* URLType.swift in Sources */,
 				44198C1C2A3A6DB1004F22D5 /* EalainView.swift in Sources */,
 				44B823552D4F3662007FA594 /* Logging.swift in Sources */,
 				44198C1F2A3A6E66004F22D5 /* EalainImageView.swift in Sources */,

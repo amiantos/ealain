@@ -84,10 +84,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         setOrientation(frame: frame)
 
         Log.debug("Screensaver started!")
-
-        Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { _ in
-            self.updateCurrentUrlStrings(firstLaunch: true)
-        }
+        self.updateCurrentUrlStrings(firstLaunch: true)
     }
 
     required init?(coder: NSCoder) {

@@ -81,7 +81,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             name: Notification.Name("com.apple.screensaver.willstop"),
             object: nil)
 
-        updateOrientation()
+        setOrientation(frame: frame)
 
         Log.debug("Screensaver started!")
 
@@ -155,8 +155,8 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         }
     }
 
-    private func updateOrientation() {
-        if window?.frame.width ?? 0 < window?.frame.height ?? 0 {
+    private func setOrientation(frame: CGRect) {
+        if frame.width < frame.height {
             orientation = .portrait
         } else {
             orientation = .landscape
@@ -359,12 +359,22 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     // MARK: - Image Generation
 
     private func generateNewImages() async {
+        do {
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+        } catch {
+            Log.error("Could not sleep for extra 5 seconds!")
+        }
+        
         if currentlyGenerating {
             return
         }
 
         if isPreview {
             updateStatusLabel("Preview Mode")
+            return
+        }
+        
+        if urls.count >= 100 {
             return
         }
 
@@ -374,7 +384,6 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         do {
             updateStatusLabel(
                 "Requesting new images from the AI Horde")
-            updateOrientation()
             let params = HordeParams(
                 n: 2,
                 width: self.orientation == .landscape ? 1024 : 576,
@@ -492,12 +501,6 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                     Log.error("Could not sleep for 5 seconds!")
                 }
             }
-        }
-
-        do {
-            try await Task.sleep(nanoseconds: 5_000_000_000)
-        } catch {
-            Log.error("Could not sleep for extra 5 seconds!")
         }
 
         currentlyGenerating = false

@@ -8,11 +8,6 @@ enum Orientation: String {
 
 class EalainView: ScreenSaverView, CAAnimationDelegate {
 
-    private let styleIds: [Orientation: String] = [
-        .landscape: "5d982e0a-8324-412a-b025-8c8f90b665a9",
-        .portrait: "1b55e180-4d29-41a3-ac35-effec38a75c5",
-    ]
-
     private let hordeAPI: HordeAPI = .init()
     private let hordeApiKey: String = "0000000000"
 
@@ -21,11 +16,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     private var currentTopImageUrl: URL?
     private var currentBottomImageUrl: URL?
 
-    private var orientation: Orientation = .landscape {
-        didSet {
-            Log.debug("Orientaion changed to \(orientation)")
-        }
-    }
+    private var orientation: Orientation = .landscape
 
     private let bottomImageView = EalainImageView()
     private let topImageView = EalainImageView()
@@ -36,22 +27,12 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             "Ealain requires internet access to function. Please wait...")
     private let statusLabelShadow = NSShadow()
 
-    private var fadeOutTimer: Timer?
-
-    private var animationRunning: Bool = false
-
-    private var currentlyGenerating: Bool = false {
-        didSet {
-            if !currentlyGenerating && !firstImageDisplayed {
-                swapHiddenImage()
-            }
-        }
-    }
-
+    private var currentlyAnimating: Bool = false
+    private var currentlyGenerating: Bool = false
     private var currentlyPruning: Bool = false
 
+    private var fadeOutTimer: Timer?
     private var pruneTimer: Timer?
-
     private var swapTimer: Timer?
 
     private var firstImageDisplayed: Bool = false {
@@ -102,19 +83,15 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
         updateOrientation()
 
-        updateCurrentUrlStrings(firstLaunch: true)
+        Log.debug("Screensaver started!")
+
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { _ in
+            self.updateCurrentUrlStrings(firstLaunch: true)
+        }
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    override func startAnimation() {
-        super.startAnimation()
-    }
-
-    override func stopAnimation() {
-        super.stopAnimation()
     }
 
     override func draw(_ rect: NSRect) {
@@ -134,8 +111,6 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     }
 
     override func animateOneFrame() {
-        updateCurrentUrlStrings(firstLaunch: false)
-
         if urls.count < 100 {
             Task {
                 await generateNewImages()
@@ -148,7 +123,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         if flag {
             animationStopped()
-            animationRunning = false
+            currentlyAnimating = false
         }
     }
 
@@ -166,16 +141,18 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     }
 
     @objc private func triggerSwapImageViews() {
-        Log.debug("15 seconds have passed, swapping images")
         swapImageViews()
     }
 
     @objc fileprivate func willStop(_ aNotification: Notification) {
         Log.debug("🖼️ 📢📢📢 willStop")
+        self.stopAnimation()
+        swapTimer?.invalidate()
+        pruneTimer?.invalidate()
+        fadeOutTimer?.invalidate()
         if #available(macOS 14.0, *) {
             exit(0)
         }
-        self.stopAnimation()
     }
 
     private func updateOrientation() {
@@ -198,21 +175,17 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     }
 
     private func swapHiddenImage() {
-        if bottomImageView.layer?.opacity == 0.0 {
-            if let url = getImageUrl() {
+        if let url = getImageUrl() {
+            if bottomImageView.layer?.opacity == 0.0 {
                 bottomImageView.loadImage(url: url)
                 currentBottomImageUrl = url
                 Log.debug("Swapped Bottom Image")
                 self.showBottomImage()
-            }
-        } else if topImageView.layer?.opacity == 1.0 {
-            if let url = getImageUrl() {
+            } else if topImageView.layer?.opacity == 1.0 {
                 bottomImageView.loadImage(url: url)
                 currentBottomImageUrl = url
                 Log.debug("Swapped Bottom Image")
-            }
-        } else if topImageView.layer?.opacity == 0.0 {
-            if let url = getImageUrl() {
+            } else if topImageView.layer?.opacity == 0.0 {
                 topImageView.loadImage(url: url)
                 currentTopImageUrl = url
                 Log.debug("Swapped Top Image")
@@ -221,9 +194,9 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     }
 
     private func swapImageViews() {
-        guard !animationRunning else { return }
+        guard !currentlyAnimating else { return }
 
-        animationRunning = true
+        currentlyAnimating = true
 
         if topImageView.layer?.opacity ?? 0.0 == 0.0 {
             showTopImage()
@@ -280,6 +253,8 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     }
 
     private func getImageUrl() -> URL? {
+        updateCurrentUrlStrings(firstLaunch: false)
+
         if urls.count < 2 {
             return nil
         }
@@ -397,12 +372,6 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         var currentRequestUUID: UUID?
 
         do {
-            try await Task.sleep(nanoseconds: 5_000_000_000)
-        } catch {
-            Log.error("Could not sleep for extra 5 seconds!")
-        }
-
-        do {
             updateStatusLabel(
                 "Requesting new images from the AI Horde")
             updateOrientation()
@@ -410,10 +379,9 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                 n: 2,
                 width: self.orientation == .landscape ? 1024 : 576,
                 height: self.orientation == .landscape ? 576 : 1024)
-            let styleId = styleIds[orientation]!
             let request = HordeRequest(
                 prompt: " ",
-                style: styleId,
+                style: "ec929308-bfcf-47b2-92c1-07abdfbc682f",
                 params: params)
             Log.debug(params)
             let requestResponse = try await hordeAPI.submitRequest(
@@ -472,6 +440,9 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                                         generation.img)
                                 }
                             }
+                            if !firstImageDisplayed {
+                                swapHiddenImage()
+                            }
                         }
                         break
                     } else {
@@ -523,13 +494,19 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             }
         }
 
+        do {
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+        } catch {
+            Log.error("Could not sleep for extra 5 seconds!")
+        }
+
         currentlyGenerating = false
 
     }
 
     private func saveImageFromUrlString(_ urlString: String) async -> Bool {
         guard let url = URL(string: urlString) else {
-            print("Invalid URL: \(urlString)")
+            Log.error("Invalid URL: \(urlString)")
             return false
         }
 

@@ -397,6 +397,12 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         var currentRequestUUID: UUID?
 
         do {
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+        } catch {
+            Log.error("Could not sleep for extra 5 seconds!")
+        }
+
+        do {
             updateStatusLabel(
                 "Requesting new images from the AI Horde")
             updateOrientation()
@@ -515,12 +521,6 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                     Log.error("Could not sleep for 5 seconds!")
                 }
             }
-        }
-        
-        do {
-            try await Task.sleep(nanoseconds: 5_000_000_000)
-        } catch {
-            Log.error("Could not sleep for extra 5 seconds!")
         }
 
         currentlyGenerating = false

@@ -37,6 +37,10 @@ final class ConfigureSheetController: NSObject {
         URLType.horde.open()
     }
     
+    @IBAction func styleLinkAction(_sender: NSButton) {
+        URLType.styles.open()
+    }
+    
     // MARK: - View Setup
 
     override init() {

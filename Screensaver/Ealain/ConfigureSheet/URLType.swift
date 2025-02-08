@@ -15,6 +15,7 @@ enum URLType: String {
     case brad = "https://bradroot.me"
     case github = "https://github.com/amiantos/ealain"
     case horde = "https://aihorde.net"
+    case styles = "https://github.com/amiantos/ealain/blob/main/STYLES.md"
 }
 
 extension URLType {

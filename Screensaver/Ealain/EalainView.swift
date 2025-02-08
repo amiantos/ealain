@@ -41,7 +41,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                 Log.debug("First image displayed!")
 
                 pruneTimer = Timer.scheduledTimer(
-                    timeInterval: 5, target: self,
+                    timeInterval: 300, target: self,
                     selector: #selector(pruneOldImages), userInfo: nil,
                     repeats: false)
             }

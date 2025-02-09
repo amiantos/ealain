@@ -14,7 +14,11 @@ These are some examples of the kind of art you may see on your screen, but you w
 
 ## Custom Styles
 
-Ealain uses the AI Horde Style system, meaning you can create your own style and tell the screensaver to use it. To learn more, check out [STYLES.md](/STYLES.md). If you create a great style, feel free to submit it in a PR to the repo.
+Ealain uses [AI Horde Styles](https://haidra.net/styles-on-the-ai-horde/) to power its image generation, meaning you can create your own style and tell the screensaver to use it instead. To learn more, check out [STYLES.md](/STYLES.md). If you create a great style, feel free to submit it in a PR to the repo, or contact me in some way so we can collaborate.
+
+## Local Cache
+
+Ealain caches up to 100 images locally. You can find these images under `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain` on your local filesystem.
 
 ## Authors
 

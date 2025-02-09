@@ -545,6 +545,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                 request: request)
             currentRequestUUID = requestResponse.id
             updateStatusLabel("Request submitted to the AI Horde")
+            connectionFailures = 0
             Log.debug(
                 "New generation request ID: \(String(describing: currentRequestUUID))"
             )

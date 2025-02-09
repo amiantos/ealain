@@ -7,8 +7,9 @@ enum Orientation: String {
 }
 
 class EalainView: ScreenSaverView, CAAnimationDelegate {
-    
-    lazy var sheetController: ConfigureSheetController = ConfigureSheetController()
+
+    lazy var sheetController: ConfigureSheetController =
+        ConfigureSheetController()
 
     private let hordeAPI: HordeAPI = .init()
     private let hordeApiKey: String = "0000000000"
@@ -83,6 +84,16 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             name: Notification.Name("com.apple.screensaver.willstop"),
             object: nil)
 
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(EalainView.willStop(_:)),
+            name: Notification.Name("com.apple.screensaver.willstop"),
+            object: nil)
+
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(onSleepNote(note:)),
+            name: NSWorkspace.willSleepNotification, object: nil)
+
         setOrientation(frame: frame)
 
         Log.debug("Screensaver started!")
@@ -92,11 +103,11 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override var hasConfigureSheet: Bool {
         return true
     }
-    
+
     override var configureSheet: NSWindow? {
         return sheetController.window
     }
@@ -154,6 +165,16 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     @objc fileprivate func willStop(_ aNotification: Notification) {
         Log.debug("🖼️ 📢📢📢 willStop")
         self.stopAnimation()
+        swapTimer?.invalidate()
+        pruneTimer?.invalidate()
+        fadeOutTimer?.invalidate()
+        if #available(macOS 14.0, *) {
+            exit(0)
+        }
+    }
+    
+    @objc func onSleepNote(note: Notification) {
+        Log.debug("🖼️ 📢📢📢 onSleepNote")
         swapTimer?.invalidate()
         pruneTimer?.invalidate()
         fadeOutTimer?.invalidate()
@@ -371,7 +392,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         } catch {
             Log.error("Could not sleep for extra 5 seconds!")
         }
-        
+
         if currentlyGenerating {
             return
         }
@@ -380,7 +401,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             updateStatusLabel("Preview Mode")
             return
         }
-        
+
         if urls.count >= 100 {
             return
         }

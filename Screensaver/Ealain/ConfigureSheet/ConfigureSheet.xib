@@ -123,7 +123,7 @@
                                     <rect key="frame" x="18" y="52" width="293" height="64"/>
                                     <textFieldCell key="cell" selectable="YES" alignment="left" id="ARh-7G-iDg">
                                         <font key="font" metaFont="system"/>
-                                        <string key="title">Paste in a Horde Style ID here and click Save to override the default style of the screensaver. Remove and hit Save to go back to the default art style.</string>
+                                        <string key="title">Paste in an AI Horde Style ID here and click Save to override the default style of the screensaver. Remove and hit Save to go back to the default art style.</string>
                                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     </textFieldCell>

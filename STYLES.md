@@ -11,6 +11,12 @@
 
 ## Style List
 
+### Default
+
+Style ID `ec929308-bfcf-47b2-92c1-07abdfbc682f`
+
+![Default style example images](/images/default-examples.jpg?raw=true)
+
 ### Cubism
 
 Style ID `10f702ac-02e8-46ce-b871-3cd8b73726fb`

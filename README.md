@@ -6,7 +6,7 @@ Ealain is a macOS screensaver that displays abstract art generated with Stable D
 
 These are some examples of the kind of art you may see on your screen, but you will never see these specific images.
 
-![Ealain generative art example images, showing abstract are in the bauhaus, de stijl, and more geometric styles](/images/main-examples.jpg?raw=true)
+![Ealain generative art example images, showing abstract are in the bauhaus, de stijl art styles](/images/default-examples.jpg?raw=true)
 
 ## Download
 

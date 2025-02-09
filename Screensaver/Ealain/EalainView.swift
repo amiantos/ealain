@@ -13,6 +13,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
     private let hordeAPI: HordeAPI = .init()
     private let hordeApiKey: String = "0000000000"
+    private var styleId: String = "ec929308-bfcf-47b2-92c1-07abdfbc682f"
 
     private var urls: [URL] = []
     private var recentlyUsedUrls: [URL] = []
@@ -55,6 +56,10 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
     override init?(frame: CGRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
+        
+        if Database.standard.styleIdOverride != "" {
+            styleId = Database.standard.styleIdOverride
+        }
 
         Log.logLevel = .debug
 
@@ -172,7 +177,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             exit(0)
         }
     }
-    
+
     @objc func onSleepNote(note: Notification) {
         Log.debug("🖼️ 📢📢📢 onSleepNote")
         swapTimer?.invalidate()
@@ -250,6 +255,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         }
 
         let imagesFolderURL = appSupportURL.appendingPathComponent("Ealain")
+            .appendingPathComponent(styleId)
             .appendingPathComponent(self.orientation.rawValue)
         try fileManager.createDirectory(
             at: imagesFolderURL, withIntermediateDirectories: true,
@@ -285,9 +291,6 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
         if urls.count < 2 {
             return nil
-        }
-        if urls.count == 1 {
-            return urls[0]
         }
 
         if recentlyUsedUrls.count == urls.count {
@@ -387,11 +390,6 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     // MARK: - Image Generation
 
     private func generateNewImages() async {
-        do {
-            try await Task.sleep(nanoseconds: 5_000_000_000)
-        } catch {
-            Log.error("Could not sleep for extra 5 seconds!")
-        }
 
         if currentlyGenerating {
             return
@@ -410,6 +408,12 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         var currentRequestUUID: UUID?
 
         do {
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+        } catch {
+            Log.error("Could not sleep for extra 5 seconds!")
+        }
+
+        do {
             updateStatusLabel(
                 "Requesting new images from the AI Horde")
             let params = HordeParams(
@@ -418,16 +422,23 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
                 height: self.orientation == .landscape ? 576 : 1024)
             let request = HordeRequest(
                 prompt: " ",
-                style: "ec929308-bfcf-47b2-92c1-07abdfbc682f",
+                style: styleId,
                 params: params)
             Log.debug(params)
             let requestResponse = try await hordeAPI.submitRequest(
                 apiKey: hordeApiKey,
                 request: request)
             currentRequestUUID = requestResponse.id
+            updateStatusLabel("Request submitted to the AI Horde")
             Log.debug(
                 "New generation request ID: \(String(describing: currentRequestUUID))"
             )
+
+            do {
+                try await Task.sleep(nanoseconds: 5_000_000_000)
+            } catch {
+                Log.error("Could not sleep for extra 5 seconds!")
+            }
         } catch APIError.requestFailed {
             updateStatusLabel(
                 "Unable to communicate with the AI Horde, retrying")

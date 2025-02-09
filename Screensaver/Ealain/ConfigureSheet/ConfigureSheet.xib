@@ -8,6 +8,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="ConfigureSheetController" customModule="Ealain" customModuleProvider="target">
             <connections>
+                <outlet property="styleOverrideTextField" destination="SaU-XM-Tq8" id="yP0-MB-hFU"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="msk-9s-ld4"/>
             </connections>
         </customObject>
@@ -31,7 +32,7 @@
                         </textFieldCell>
                     </textField>
                     <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cPI-vH-MTc">
-                        <rect key="frame" x="220" y="498" width="25" height="14"/>
+                        <rect key="frame" x="217" y="508" width="25" height="14"/>
                         <textFieldCell key="cell" lineBreakMode="clipping" alignment="left" title="v1.0" id="aYW-mH-qB5">
                             <font key="font" metaFont="controlContent" size="11"/>
                             <color key="textColor" name="tertiaryLabelColor" catalog="System" colorSpace="catalog"/>
@@ -110,6 +111,9 @@
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                         <font key="font" metaFont="system"/>
                                     </buttonCell>
+                                    <connections>
+                                        <action selector="saveButtonClicked:" target="-2" id="9C9-xa-58g"/>
+                                    </connections>
                                 </button>
                                 <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="m0D-Kc-I8g">
                                     <rect key="frame" x="16" y="130" width="297" height="5"/>
@@ -196,10 +200,10 @@ DQ
                     <constraint firstAttribute="bottom" secondItem="ckD-Qe-k8M" secondAttribute="bottom" constant="20" symbolic="YES" id="MYC-07-CER"/>
                     <constraint firstItem="kB6-qM-Jeb" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" constant="20" symbolic="YES" id="NsS-gb-jSs"/>
                     <constraint firstItem="Ezl-WK-wYQ" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" constant="20" id="OLr-eW-Gi5"/>
-                    <constraint firstItem="cPI-vH-MTc" firstAttribute="leading" secondItem="XeC-oa-EiD" secondAttribute="trailing" constant="3" id="X85-eC-9u9"/>
+                    <constraint firstItem="cPI-vH-MTc" firstAttribute="leading" secondItem="XeC-oa-EiD" secondAttribute="trailing" id="X85-eC-9u9"/>
                     <constraint firstItem="ckD-Qe-k8M" firstAttribute="top" secondItem="Ezl-WK-wYQ" secondAttribute="bottom" constant="20" symbolic="YES" id="YSC-np-tWS"/>
                     <constraint firstItem="kB6-qM-Jeb" firstAttribute="top" secondItem="rhy-1B-SYh" secondAttribute="bottom" constant="12" id="gDn-OX-SvE"/>
-                    <constraint firstItem="cPI-vH-MTc" firstAttribute="firstBaseline" secondItem="XeC-oa-EiD" secondAttribute="firstBaseline" id="kyW-SE-0uq"/>
+                    <constraint firstItem="cPI-vH-MTc" firstAttribute="firstBaseline" secondItem="XeC-oa-EiD" secondAttribute="firstBaseline" constant="-10" id="kyW-SE-0uq"/>
                     <constraint firstAttribute="trailing" secondItem="ckD-Qe-k8M" secondAttribute="trailing" constant="20" symbolic="YES" id="lcN-pZ-oMI"/>
                     <constraint firstItem="1gf-Ju-X9J" firstAttribute="top" secondItem="kB6-qM-Jeb" secondAttribute="bottom" constant="16" id="lpJ-cj-prk"/>
                     <constraint firstItem="XeC-oa-EiD" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="20" id="mbv-ex-NLO"/>

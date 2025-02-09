@@ -41,6 +41,18 @@ final class ConfigureSheetController: NSObject {
         URLType.styles.open()
     }
     
+    @IBOutlet weak var styleOverrideTextField: NSTextField!
+    @IBAction func saveButtonClicked(_ sender: NSButton) {
+        Database.standard.set(styleIdOverride: styleOverrideTextField.stringValue)
+        
+        let alert = NSAlert()
+        alert.messageText = "Save Successful"
+        alert.informativeText = "Your style override has been saved."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+    
     // MARK: - View Setup
 
     override init() {
@@ -52,5 +64,6 @@ final class ConfigureSheetController: NSObject {
     }
     
     fileprivate func loadSettings() {
+        styleOverrideTextField.stringValue = Database.standard.styleIdOverride
     }
 }

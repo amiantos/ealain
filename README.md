@@ -25,6 +25,6 @@ Ealain detects if you have your monitors in landscape or portrait orientation an
 
 Ealain caches up to ~100 images (for each monitor orientation) on your local filesystem. You can find these images under: `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
 
-### Authors
+## Authors
 
 * Brad Root - [amiantos](https://github.com/amiantos)

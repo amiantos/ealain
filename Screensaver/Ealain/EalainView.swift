@@ -7,12 +7,15 @@ enum Orientation: String {
 }
 
 class EalainView: ScreenSaverView, CAAnimationDelegate {
+    
+    private let version: String = "1.0"
 
     lazy var sheetController: ConfigureSheetController =
         ConfigureSheetController()
 
     private let hordeAPI: HordeAPI = .init()
     private let hordeApiKey: String = "0000000000"
+    private var defaultStyleId: String = "ec929308-bfcf-47b2-92c1-07abdfbc682f"
     private var styleId: String = "ec929308-bfcf-47b2-92c1-07abdfbc682f"
 
     private var urls: [URL] = []
@@ -30,6 +33,12 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         labelWithString:
             "Ealain requires internet access to function. Please wait...")
     private let statusLabelShadow = NSShadow()
+    
+    private let messageLabelView = NSView()
+    private let messageLabel = NSTextField(
+        labelWithString:
+            "Test Label for Positioning")
+    private let messageLabelShadow = NSShadow()
 
     private var currentlyAnimating: Bool = false
     private var currentlyGenerating: Bool = false
@@ -38,6 +47,21 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     private var fadeOutTimer: Timer?
     private var pruneTimer: Timer?
     private var swapTimer: Timer?
+    private var messageTimer: Timer?
+    
+    private var connectionFailures: Int = 0 {
+        didSet {
+            if connectionFailures > 5 {
+                stopTrying = true
+                if styleId != defaultStyleId {
+                    updateStatusLabel("Reached maximum failures, please check your internet connection or verify style override is correct...")
+                } else {
+                    updateStatusLabel("Reached maximum failures, please check your internet connection...")
+                }
+            }
+        }
+    }
+    private var stopTrying: Bool = false
 
     private var firstImageDisplayed: Bool = false {
         didSet {
@@ -74,14 +98,27 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         statusLabel.textColor = .white
         let fontSize: CGFloat = isPreview ? 10 : 16
         statusLabel.font = .systemFont(ofSize: fontSize, weight: .medium)
-        statusLabel.sizeToFit()
-        statusLabel.maximumNumberOfLines = 2
+        statusLabel.maximumNumberOfLines = 1
         statusLabelView.layer?.opacity = 0
 
         statusLabelShadow.shadowColor = NSColor.black
         statusLabelShadow.shadowOffset = CGSize(width: 2, height: 2)
         statusLabelShadow.shadowBlurRadius = 3
         statusLabel.shadow = statusLabelShadow
+        
+        addSubview(messageLabelView)
+        messageLabelView.wantsLayer = true
+        messageLabelView.addSubview(messageLabel)
+        messageLabel.textColor = .white
+        let messageFontSize: CGFloat = isPreview ? 10 : 16
+        messageLabel.font = .systemFont(ofSize: messageFontSize, weight: .medium)
+        messageLabel.maximumNumberOfLines = 1
+        messageLabelView.layer?.opacity = 0
+
+        messageLabelShadow.shadowColor = NSColor.black
+        messageLabelShadow.shadowOffset = CGSize(width: 2, height: 2)
+        messageLabelShadow.shadowBlurRadius = 3
+        messageLabel.shadow = messageLabelShadow
 
         DistributedNotificationCenter.default.addObserver(
             self,
@@ -103,6 +140,15 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
         Log.debug("Screensaver started!")
         self.updateCurrentUrlStrings(firstLaunch: true)
+        
+        messageTimer = Timer.scheduledTimer(
+            timeInterval: 60, target: self,
+            selector: #selector(checkForMessages), userInfo: nil,
+            repeats: false)
+        
+        if urls.count == 0 {
+            self.updateStatusLabel("Ealain is starting...")
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -129,8 +175,11 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         bottomImageView.frame = squareFrame
         topImageView.frame = squareFrame
         statusLabelView.frame = squareFrame
+        messageLabelView.frame = squareFrame
 
         statusLabel.frame.origin = CGPoint(x: 10, y: 10)
+        messageLabel.sizeToFit()
+        messageLabel.frame.origin = CGPoint(x: 10, y: 40)
     }
 
     override func animateOneFrame() {
@@ -361,6 +410,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         statusLabelView.layer?.removeAllAnimations()
 
         statusLabel.stringValue = text
+        statusLabel.sizeToFit()
         let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
         animation.fromValue = statusLabelView.layer?.opacity ?? 0.0
         animation.toValue = 1.0
@@ -375,6 +425,42 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             selector: #selector(fadeOutStatusLabel), userInfo: nil,
             repeats: false)
     }
+    
+    private func updateMessageLabel(_ text: String) {
+        messageLabel.stringValue = text
+        messageLabel.sizeToFit()
+        fadeInMessageLabel()
+    }
+    
+    private func fadeInMessageLabel() {
+        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+        animation.fromValue = messageLabelView.layer?.opacity ?? 0.0
+        animation.toValue = 1.0
+        animation.duration = 1
+        animation.timingFunction = CAMediaTimingFunction(
+            name: .easeInEaseOut)
+        messageLabelView.layer?.add(animation, forKey: "fade")
+        messageLabelView.layer?.opacity = 1
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            self.fadeOutMessageLabel()
+        }
+    }
+    
+    private func fadeOutMessageLabel() {
+        let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+        animation.fromValue = messageLabelView.layer?.opacity ?? 0.0
+        animation.toValue = 0
+        animation.duration = 1
+        animation.timingFunction = CAMediaTimingFunction(
+            name: .easeInEaseOut)
+        messageLabelView.layer?.add(animation, forKey: "fade")
+        messageLabelView.layer?.opacity = 0
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            self.fadeInMessageLabel()
+        }
+    }
 
     @objc private func fadeOutStatusLabel() {
         let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
@@ -386,17 +472,37 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         statusLabelView.layer?.add(animation, forKey: "fade")
         statusLabelView.layer?.opacity = 0
     }
+    
+    // MARK: - App Messages
+    
+    @objc fileprivate func checkForMessages() {
+        Log.debug("Checking for messages for this version of Ealain...")
+        DispatchQueue.global(qos: .background).async { [self] in
+            if let data = try? Data(contentsOf: URL(string: "https://ealain.s3.amazonaws.com/messages.json")!), let messages = try? JSONDecoder().decode(
+                [String:String].self,
+                from: data
+            ) {
+                if let message = messages[version], message != "" {
+                    DispatchQueue.main.async {
+                        self.updateMessageLabel(message)
+                    }
+                }
+            }
+        }
+    }
 
     // MARK: - Image Generation
 
     private func generateNewImages() async {
 
-        if currentlyGenerating {
+        if currentlyGenerating || stopTrying {
             return
         }
 
         if isPreview {
-            updateStatusLabel("Preview Mode")
+            if urls.count == 0 {
+                updateStatusLabel("No Images (Preview)")
+            }
             return
         }
 
@@ -439,27 +545,11 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             } catch {
                 Log.error("Could not sleep for extra 5 seconds!")
             }
-        } catch APIError.requestFailed {
-            updateStatusLabel(
-                "Unable to communicate with the AI Horde, retrying")
-        } catch APIError.requestTimedOut {
-            updateStatusLabel(
-                "Unable to communicate with the AI Horde, retrying")
-        } catch let APIError.invalidResponse(statusCode, content) {
-            Log.error(
-                "Received \(statusCode) from AI Horde API. \(content)")
-            if statusCode == 429 {
-                updateStatusLabel(
-                    "The AI Horde is experiencing heavy loads, retrying"
-                )
-            } else {
-                updateStatusLabel(
-                    "Unable to communicate with the AI Horde, retrying")
-            }
         } catch {
             Log.error("\(error)")
             updateStatusLabel(
-                "Unable to communicate with the AI Horde, retrying")
+                "Unable to communicate with the AI Horde, retrying...")
+            connectionFailures += 1
         }
 
         if let requestUUID = currentRequestUUID {

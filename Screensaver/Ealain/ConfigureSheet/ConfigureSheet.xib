@@ -8,6 +8,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="ConfigureSheetController" customModule="Ealain" customModuleProvider="target">
             <connections>
+                <outlet property="savedSuccessLabel" destination="XjO-oQ-PB5" id="cGs-RI-hdt"/>
                 <outlet property="styleOverrideTextField" destination="SaU-XM-Tq8" id="yP0-MB-hFU"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="msk-9s-ld4"/>
             </connections>
@@ -138,6 +139,14 @@
                                         <action selector="styleLinkActionWith_sender:" target="-2" id="d16-cP-ri2"/>
                                     </connections>
                                 </button>
+                                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="XjO-oQ-PB5">
+                                    <rect key="frame" x="269" y="171" width="45" height="16"/>
+                                    <textFieldCell key="cell" lineBreakMode="clipping" title="Saved!" id="NtK-bF-yUh">
+                                        <font key="font" metaFont="system"/>
+                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    </textFieldCell>
+                                </textField>
                             </subviews>
                             <constraints>
                                 <constraint firstAttribute="trailing" secondItem="1GJ-Oy-YEN" secondAttribute="trailing" constant="20" symbolic="YES" id="1Sb-9c-xU2"/>
@@ -147,11 +156,13 @@
                                 <constraint firstAttribute="bottom" secondItem="1GJ-Oy-YEN" secondAttribute="bottom" constant="20" symbolic="YES" id="NOq-kl-q4d"/>
                                 <constraint firstItem="SaU-XM-Tq8" firstAttribute="leading" secondItem="xgk-1N-ZTe" secondAttribute="leading" constant="20" symbolic="YES" id="PNk-E1-Vz0"/>
                                 <constraint firstItem="SaU-XM-Tq8" firstAttribute="top" secondItem="xgk-1N-ZTe" secondAttribute="top" constant="20" symbolic="YES" id="UbG-Ba-blY"/>
+                                <constraint firstItem="e73-zO-9k0" firstAttribute="top" secondItem="XjO-oQ-PB5" secondAttribute="bottom" constant="2" id="fyT-vv-JS5"/>
                                 <constraint firstItem="e73-zO-9k0" firstAttribute="leading" secondItem="SaU-XM-Tq8" secondAttribute="trailing" constant="8" symbolic="YES" id="icW-6T-kh4"/>
                                 <constraint firstItem="1GJ-Oy-YEN" firstAttribute="top" secondItem="xKL-A3-b1X" secondAttribute="bottom" constant="16" id="jPh-lq-PNp"/>
                                 <constraint firstAttribute="trailing" secondItem="xKL-A3-b1X" secondAttribute="trailing" constant="20" symbolic="YES" id="kT5-Uh-xdK"/>
                                 <constraint firstItem="1GJ-Oy-YEN" firstAttribute="leading" secondItem="xgk-1N-ZTe" secondAttribute="leading" constant="20" symbolic="YES" id="lNf-iI-Xe4"/>
                                 <constraint firstItem="xKL-A3-b1X" firstAttribute="top" secondItem="m0D-Kc-I8g" secondAttribute="bottom" constant="16" id="oh6-vL-cLe"/>
+                                <constraint firstItem="XjO-oQ-PB5" firstAttribute="centerX" secondItem="e73-zO-9k0" secondAttribute="centerX" id="pqd-eL-Zfx"/>
                                 <constraint firstItem="xKL-A3-b1X" firstAttribute="leading" secondItem="xgk-1N-ZTe" secondAttribute="leading" constant="20" symbolic="YES" id="uLl-ud-nLt"/>
                                 <constraint firstAttribute="trailing" secondItem="e73-zO-9k0" secondAttribute="trailing" constant="13" id="y8I-md-D8S"/>
                                 <constraint firstAttribute="trailing" secondItem="m0D-Kc-I8g" secondAttribute="trailing" constant="16" id="zBM-e8-gMi"/>

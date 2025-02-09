@@ -7,7 +7,7 @@ enum Orientation: String {
 }
 
 class EalainView: ScreenSaverView, CAAnimationDelegate {
-    
+
     private let version: String = "1.0"
 
     lazy var sheetController: ConfigureSheetController =
@@ -31,9 +31,9 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     private let statusLabelView = NSView()
     private let statusLabel = NSTextField(
         labelWithString:
-            "Ealain requires internet access to function. Please wait...")
+            "")
     private let statusLabelShadow = NSShadow()
-    
+
     private let messageLabelView = NSView()
     private let messageLabel = NSTextField(
         labelWithString:
@@ -48,15 +48,19 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
     private var pruneTimer: Timer?
     private var swapTimer: Timer?
     private var messageTimer: Timer?
-    
+
     private var connectionFailures: Int = 0 {
         didSet {
             if connectionFailures > 5 {
                 stopTrying = true
                 if styleId != defaultStyleId {
-                    updateStatusLabel("Reached maximum failures, please check your internet connection or verify style override is correct...")
+                    updateStatusLabel(
+                        "Reached maximum failures, please check your internet connection or verify style override is correct..."
+                    )
                 } else {
-                    updateStatusLabel("Reached maximum failures, please check your internet connection...")
+                    updateStatusLabel(
+                        "Reached maximum failures, please check your internet connection..."
+                    )
                 }
             }
         }
@@ -80,7 +84,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
     override init?(frame: CGRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
-        
+
         if Database.standard.styleIdOverride != "" {
             styleId = Database.standard.styleIdOverride
         }
@@ -105,13 +109,14 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         statusLabelShadow.shadowOffset = CGSize(width: 2, height: 2)
         statusLabelShadow.shadowBlurRadius = 3
         statusLabel.shadow = statusLabelShadow
-        
+
         addSubview(messageLabelView)
         messageLabelView.wantsLayer = true
         messageLabelView.addSubview(messageLabel)
         messageLabel.textColor = .white
         let messageFontSize: CGFloat = isPreview ? 10 : 16
-        messageLabel.font = .systemFont(ofSize: messageFontSize, weight: .medium)
+        messageLabel.font = .systemFont(
+            ofSize: messageFontSize, weight: .medium)
         messageLabel.maximumNumberOfLines = 1
         messageLabelView.layer?.opacity = 0
 
@@ -140,12 +145,12 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
 
         Log.debug("Screensaver started!")
         self.updateCurrentUrlStrings(firstLaunch: true)
-        
+
         messageTimer = Timer.scheduledTimer(
             timeInterval: 60, target: self,
             selector: #selector(checkForMessages), userInfo: nil,
             repeats: false)
-        
+
         if urls.count == 0 {
             self.updateStatusLabel("Ealain is starting...")
         }
@@ -425,13 +430,13 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             selector: #selector(fadeOutStatusLabel), userInfo: nil,
             repeats: false)
     }
-    
+
     private func updateMessageLabel(_ text: String) {
         messageLabel.stringValue = text
         messageLabel.sizeToFit()
         fadeInMessageLabel()
     }
-    
+
     private func fadeInMessageLabel() {
         let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
         animation.fromValue = messageLabelView.layer?.opacity ?? 0.0
@@ -441,12 +446,12 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             name: .easeInEaseOut)
         messageLabelView.layer?.add(animation, forKey: "fade")
         messageLabelView.layer?.opacity = 1
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             self.fadeOutMessageLabel()
         }
     }
-    
+
     private func fadeOutMessageLabel() {
         let animation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
         animation.fromValue = messageLabelView.layer?.opacity ?? 0.0
@@ -456,7 +461,7 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
             name: .easeInEaseOut)
         messageLabelView.layer?.add(animation, forKey: "fade")
         messageLabelView.layer?.opacity = 0
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             self.fadeInMessageLabel()
         }
@@ -472,16 +477,20 @@ class EalainView: ScreenSaverView, CAAnimationDelegate {
         statusLabelView.layer?.add(animation, forKey: "fade")
         statusLabelView.layer?.opacity = 0
     }
-    
+
     // MARK: - App Messages
-    
+
     @objc fileprivate func checkForMessages() {
         Log.debug("Checking for messages for this version of Ealain...")
         DispatchQueue.global(qos: .background).async { [self] in
-            if let data = try? Data(contentsOf: URL(string: "https://ealain.s3.amazonaws.com/messages.json")!), let messages = try? JSONDecoder().decode(
-                [String:String].self,
-                from: data
-            ) {
+            if let data = try? Data(
+                contentsOf: URL(
+                    string: "https://ealain.s3.amazonaws.com/messages.json")!),
+                let messages = try? JSONDecoder().decode(
+                    [String: String].self,
+                    from: data
+                )
+            {
                 if let message = messages[version], message != "" {
                     DispatchQueue.main.async {
                         self.updateMessageLabel(message)

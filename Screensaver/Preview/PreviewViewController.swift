@@ -12,7 +12,7 @@ class PreviewViewController: NSViewController {
     }
 
     override func loadView() {
-        screensaverView = EalainView(frame: CGRect.zero, isPreview: true)
+        screensaverView = EalainView(frame: CGRect.zero, isPreview: false)
         self.view = screensaverView ?? NSView()
     }
 
@@ -31,7 +31,9 @@ class PreviewViewController: NSViewController {
     private func toggleAnimationTimer() {
         if isAnimating {
             if timer == nil {
-                timer = Timer.scheduledTimer(withTimeInterval: 1/30.0, repeats: true) { [weak self] (_) in
+                timer = Timer.scheduledTimer(
+                    withTimeInterval: 1 / 30.0, repeats: true
+                ) { [weak self] (_) in
                     self?.animate()
                 }
             }

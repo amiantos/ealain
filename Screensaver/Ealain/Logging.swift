@@ -51,13 +51,18 @@ open class Log {
         return dateFormatter
     }()
 
-    private static func log(_ object: @autoclosure () -> some Any, level: Log.Level, _ fileName: String, _: String, _ line: Int) {
+    private static func log(
+        _ object: @autoclosure () -> some Any, level: Log.Level,
+        _ fileName: String, _: String, _ line: Int
+    ) {
         if logLevel.rawValue <= level.rawValue {
             let date = Log.dateformatter.string(from: Date())
             let components: [String] = fileName.components(separatedBy: "/")
             let objectName = components.last ?? "Unknown Object"
-            let levelString = Log.useEmoji ? level.emoji : "|" + level.name.uppercased() + "|"
-            let logString = "\(levelString) [\(date)]: \(object()) [\(objectName): \(line)]"
+            let levelString =
+                Log.useEmoji ? level.emoji : "|" + level.name.uppercased() + "|"
+            let logString =
+                "\(levelString) [\(date)]: \(object()) [\(objectName): \(line)]"
             print(logString)
             handler?(level, logString)
         }

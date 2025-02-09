@@ -8,7 +8,7 @@ These are some examples of the kind of art you may see on your screen, but you w
 
 ![Ealain generative art example images, showing abstract are in the bauhaus, de stijl, and more geometric styles](/images/main-examples.jpg?raw=true)
 
-# Download
+## Download
 
 - [Download Ealain v1.0 for macOS](https://amiantos.s3.amazonaws.com/ealain-1.0.zip)
 
@@ -18,12 +18,8 @@ Ealain uses [AI Horde Styles](https://haidra.net/styles-on-the-ai-horde/) to pow
 
 ## Local Cache
 
-Ealain caches up to 100 images of each style used on your local filesystem. You can find these images under:
-- `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
+Ealain caches up to ~100 images of each style on your local filesystem. You can find these images under: `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
+
 ## Authors
 
 * Brad Root - [amiantos](https://github.com/amiantos)
-
-## Credits
-
-* [AI Horde](https://aihorde.net)

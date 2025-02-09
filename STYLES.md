@@ -11,6 +11,6 @@
 
 ### Cubism
 
-`10f702ac-02e8-46ce-b871-3cd8b73726fb`
+Style ID `10f702ac-02e8-46ce-b871-3cd8b73726fb`
 
 ![Cubism style example images](/style-images/cubism-examples.jpg?raw=true)

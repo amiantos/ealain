@@ -12,6 +12,14 @@ These are some examples of the kind of art you may see on your screen, but you w
 
 - [Download Ealain v1.0 for macOS](https://amiantos.s3.amazonaws.com/ealain-1.0.zip)
 
-## Styles
+## Custom Styles
 
-Ealain uses the AI Horde Style system, meaning you can create your own style and tell the screensaver to use it. To learn more, check out [STYLES.md](/STYLES.md).
+Ealain uses the AI Horde Style system, meaning you can create your own style and tell the screensaver to use it. To learn more, check out [STYLES.md](/STYLES.md). If you create a great style, feel free to submit it in a PR to the repo.
+
+## Authors
+
+* Brad Root - [amiantos](https://github.com/amiantos)
+
+## Credits
+
+* [AI Horde](https://aihorde.net)

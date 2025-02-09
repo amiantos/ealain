@@ -12,6 +12,6 @@ These are some examples of the kind of art you may see on your screen, but you w
 
 - [Download Ealain v1.0 for macOS](https://amiantos.s3.amazonaws.com/ealain-1.0.zip)
 
-## How it works
+## Styles
 
-- Ealain uses the AI Horde to generate art. Learn more at [https://aihorde.net](https://aihorde.net)!
+Ealain uses the AI Horde Style system, meaning you can create your own style and tell the screensaver to use it. To learn more, check out [STYLES.md](/STYLES.md).

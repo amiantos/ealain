@@ -18,8 +18,8 @@ Ealain uses [AI Horde Styles](https://haidra.net/styles-on-the-ai-horde/) to pow
 
 ## Local Cache
 
-Ealain caches up to 100 images locally. You can find these images under `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain` on your local filesystem.
-
+Ealain caches up to 100 images of each style used on your local filesystem. You can find these images under:
+- `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
 ## Authors
 
 * Brad Root - [amiantos](https://github.com/amiantos)

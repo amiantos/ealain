@@ -12,14 +12,15 @@ These are some examples of the kind of art you may see on your screen, but you w
 
 - [Download Ealain v1.0 for macOS](https://amiantos.s3.amazonaws.com/ealain-1.0.zip)
 
-## Custom Styles
+## Details
+### Custom Styles
 
 Ealain uses [AI Horde Styles](https://haidra.net/styles-on-the-ai-horde/) to power its image generation, meaning you can create your own style and tell the screensaver to use it instead. To learn more, check out [STYLES.md](/STYLES.md). If you create a great style, feel free to submit it in a PR to the repo, or contact me in some way so we can collaborate.
 
-## Local Cache
+### Local Cache
 
 Ealain caches up to ~100 images of each style on your local filesystem. You can find these images under: `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
 
-## Authors
+### Authors
 
 * Brad Root - [amiantos](https://github.com/amiantos)

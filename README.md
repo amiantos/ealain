@@ -12,7 +12,10 @@ These are some examples of the kind of art you may see on your screen, but you w
 
 - [Download Ealain v1.0 for macOS](https://amiantos.s3.amazonaws.com/ealain-1.0.zip)
 
-## Feature Detail
+## Features
+### Always Changing Generative Art
+Ealain uses the [AI Horde](https://aihorde.net) to generate the art, for free, using GPUs located all around the world. Older images are replaced by new art over time, so your screensaver should have something new every time it runs.
+
 ### Custom Styles
 
 Ealain uses [AI Horde Styles](https://haidra.net/styles-on-the-ai-horde/) to power its image generation, meaning you can create your own style and tell the screensaver to use it instead. To learn more, check out [STYLES.md](/STYLES.md). If you create a great style, feel free to submit it in a PR to the repo, or contact me in some way so we can collaborate.
@@ -23,8 +26,13 @@ Ealain detects if you have your monitors in landscape or portrait orientation an
 
 ### Local Cache
 
-Ealain caches up to ~100 images (for each monitor orientation) on your local filesystem. You can find these images under: `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
+Ealain caches between 100-200 images on your local filesystem. You can find these images under: `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
 
-## Authors
+# Community
+- Discuss Ealain on [the AI Horde Discord](https://discord.gg/Vc8fsQgW5E)
 
-* Brad Root - [amiantos](https://github.com/amiantos)
+# Credits
+- Ealain was built and is maintained by [Brad Root](https://github.com/amiantos)
+
+# License
+- The screensaver is licensed under the terms of the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)

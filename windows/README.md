@@ -2,8 +2,6 @@
 
 This folder contains the Windows port of Ealain, written in C# with WPF on .NET 8. It is a faithful port of the macOS screensaver in `../macOS`: same AI Horde API flow, same crossfade timings, same status messages, same cache-and-prune behavior.
 
-> **Status:** This code was written on a Mac and has not been compiled or run on Windows yet. Expect the first build to possibly need a small fix or two.
-
 ## How Windows screensavers work
 
 A `.scr` file is just a renamed `.exe`. Windows launches it with a flag:
@@ -13,7 +11,7 @@ A `.scr` file is just a renamed `.exe`. Windows launches it with a flag:
 | `/s` | Run the actual screensaver, fullscreen on every monitor |
 | `/c` | Show the settings dialog |
 | `/p <hwnd>` | Draw a preview inside the thumbnail in Screen Saver Settings |
-| `/w` | (Ours, not standard) Run in a 1280×720 window for development |
+| `/w` | (Ours, not standard) Run in a 1280×720 window for development; add `portrait` for a 576×1024 one |
 
 Running the exe with no arguments opens the settings dialog.
 
@@ -45,6 +43,9 @@ git pull
 # Windowed test mode — easiest way to see it working; Esc closes it
 dotnet run --project windows -- /w
 
+# Same, but a portrait window, to exercise the portrait image cache
+dotnet run --project windows -- /w portrait
+
 # Real fullscreen mode — move the mouse or press any key to exit
 dotnet run --project windows -- /s
 
@@ -67,16 +68,26 @@ Paste those into the Explorer address bar as-is. If something misbehaves, check 
 ## Building the actual screensaver (.scr)
 
 ```powershell
+pwsh windows/publish.ps1
+```
+
+That publishes a self-contained single-file build, renames it to `.scr`, and writes `windows\dist\Ealain-1.0.0-Windows.zip` — the file to share. The version in the name comes from `<Version>` in `Ealain.csproj`, so bump it there for a release.
+
+To install a build locally:
+
+1. Copy `Ealain.scr` somewhere permanent (e.g. `C:\Screensavers\`) — Windows remembers the path of an installed screensaver, so don't leave it in `dist\` or the build folder, and don't move it afterwards.
+2. Right-click it → **Install**. On Windows 11 that may be hidden behind **Show more options** (or press Shift+F10 instead of right-clicking).
+3. That opens the Screen Saver Settings dialog with Ealain selected; set your idle timeout and hit OK. (You can get back to that dialog anytime via Settings → Personalization → Lock screen → Screen saver.)
+
+The first launch after install pauses briefly while the single-file executable unpacks itself to a temp folder; later launches are cached.
+
+If you'd rather run the publish by hand, the script is a thin wrapper around:
+
+```powershell
 dotnet publish windows -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-The output lands in `windows\bin\Release\net8.0-windows\win-x64\publish\Ealain.exe`. Then:
-
-1. Copy `Ealain.exe` somewhere permanent (e.g. `C:\Screensavers\`) — installed screensavers run from wherever the file lives, so don't leave it in the build folder.
-2. Rename it to `Ealain.scr`.
-3. Right-click it → **Install**. That opens the Screen Saver Settings dialog with Ealain selected; set your idle timeout and hit OK. (You can get back to that dialog anytime via Settings → Personalization → Lock screen → Screen saver.)
-
-Self-contained publish means users don't need .NET installed; the tradeoff is a ~70 MB file. Nobody minds for a screensaver.
+Self-contained publish means users don't need .NET installed; the tradeoff is a ~155 MB file. Nobody minds for a screensaver, and it zips down a good deal smaller.
 
 ## Distribution notes (for later)
 

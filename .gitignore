@@ -226,5 +226,6 @@ config.json
 # .NET / Windows port
 windows/bin/
 windows/obj/
+windows/dist/
 .vs/
 *.user

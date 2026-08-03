@@ -13,9 +13,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The WPF SDK's implicit usings omit these two, unlike the default set. -->
+    <Using Include="System.IO" />
+    <Using Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- The AI Horde serves WebP images, which WPF cannot decode without an
          optional OS codec; ImageSharp decodes them and we store JPEGs instead. -->
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
 </Project>

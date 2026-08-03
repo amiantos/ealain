@@ -30,7 +30,9 @@ public static class Program
                     RunScreensaver(windowed: false);
                     break;
                 case "/w":
-                    RunScreensaver(windowed: true);
+                    RunScreensaver(
+                        windowed: true,
+                        portrait: args.Any(a => a.Trim().ToLowerInvariant() is "portrait" or "p"));
                     break;
                 case "/p":
                     if (handle != IntPtr.Zero) RunPreview(handle);
@@ -62,7 +64,7 @@ public static class Program
         return (mode, handle);
     }
 
-    static void RunScreensaver(bool windowed)
+    static void RunScreensaver(bool windowed, bool portrait = false)
     {
         // Windows can launch the saver more than once in quick succession.
         using var mutex = new Mutex(true, "Local\\EalainScreensaver", out var createdNew);
@@ -78,8 +80,14 @@ public static class Program
 
         if (windowed)
         {
+            // Portrait matches the 576x1024 asked of the horde in that
+            // orientation; landscape is a convenient 16:9. The window is sized
+            // from these bounds, and ScreensaverWindow picks its orientation
+            // from them exactly as it does for a real monitor.
             new ScreensaverWindow(
-                new NativeMethods.RECT { Left = 0, Top = 0, Right = 1280, Bottom = 720 },
+                portrait
+                    ? new NativeMethods.RECT { Left = 0, Top = 0, Right = 576, Bottom = 1024 }
+                    : new NativeMethods.RECT { Left = 0, Top = 0, Right = 1280, Bottom = 720 },
                 windowed: true).Show();
         }
         else

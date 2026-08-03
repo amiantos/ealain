@@ -36,7 +36,7 @@ public class ScreensaverWindow : Window
     bool firstImageDisplayed;
 
     DispatcherTimer? swapTimer;
-    DispatcherTimer? statusFadeTimer;
+    DispatcherTimer? statusCycleTimer;
     DispatcherTimer? generateTimer;
     DispatcherTimer? messageCheckTimer;
     DispatcherTimer? messagePulseTimer;
@@ -57,9 +57,9 @@ public class ScreensaverWindow : Window
         WindowStartupLocation = windowed ? WindowStartupLocation.CenterScreen : WindowStartupLocation.Manual;
         if (windowed)
         {
-            Title = "Ealain (windowed test — press Esc to close)";
-            Width = 1280;
-            Height = 720;
+            Title = $"Ealain (windowed test — {orientation}, press Esc to close)";
+            Width = boundsPx.Width;
+            Height = boundsPx.Height;
         }
         else
         {
@@ -125,6 +125,17 @@ public class ScreensaverWindow : Window
             hwnd, NativeMethods.HWND_TOPMOST,
             boundsPx.Left, boundsPx.Top, boundsPx.Width, boundsPx.Height,
             NativeMethods.SWP_SHOWWINDOW);
+
+        // A running screensaver covers the screen and has no console, so record
+        // where the window actually landed. If a monitor ever ends up only
+        // partly covered — the classic symptom of a DPI scaling mismatch — this
+        // line is the evidence, measured by the process that owns the window
+        // rather than by an outside tool with its own DPI awareness.
+        if (NativeMethods.GetWindowRect(hwnd, out var placed))
+            Log.Debug(
+                $"Placed window at ({placed.Left},{placed.Top}) {placed.Width}x{placed.Height}; "
+                + $"requested ({boundsPx.Left},{boundsPx.Top}) {boundsPx.Width}x{boundsPx.Height}; "
+                + $"DPI {NativeMethods.GetDpiForWindow(hwnd)}");
     }
 
     void OnLoaded(object? sender, RoutedEventArgs e)
@@ -150,7 +161,7 @@ public class ScreensaverWindow : Window
         service.StatusChanged -= OnServiceStatus;
         service.ImagesSaved -= OnImagesSaved;
         swapTimer?.Stop();
-        statusFadeTimer?.Stop();
+        statusCycleTimer?.Stop();
         generateTimer?.Stop();
         messageCheckTimer?.Stop();
         messagePulseTimer?.Stop();
@@ -227,24 +238,24 @@ public class ScreensaverWindow : Window
         var path = GetImageUrl();
         if (path == null) return;
 
-        if (bottomImage.Opacity == 0.0)
+        if (Committed(bottomImage) == 0.0)
         {
             LoadImageInto(bottomImage, path);
             currentBottomPath = path;
-            Log.Debug("Swapped Bottom Image");
+            Log.Debug("Swapped Bottom Image: " + Path.GetFileName(path));
             ShowBottomImage();
         }
-        else if (topImage.Opacity == 1.0)
+        else if (Committed(topImage) == 1.0)
         {
             LoadImageInto(bottomImage, path);
             currentBottomPath = path;
-            Log.Debug("Swapped Bottom Image");
+            Log.Debug("Swapped Bottom Image: " + Path.GetFileName(path));
         }
-        else if (topImage.Opacity == 0.0)
+        else if (Committed(topImage) == 0.0)
         {
             LoadImageInto(topImage, path);
             currentTopPath = path;
-            Log.Debug("Swapped Top Image");
+            Log.Debug("Swapped Top Image: " + Path.GetFileName(path));
         }
 
         DisplayRegistry.Set(windowId, currentTopPath, currentBottomPath);
@@ -255,15 +266,15 @@ public class ScreensaverWindow : Window
         if (currentlyAnimating) return;
         currentlyAnimating = true;
 
-        if (topImage.Opacity == 0.0)
+        if (Committed(topImage) == 0.0)
         {
             Log.Debug("Displaying Top Image");
-            Fade(topImage, 0, 1, 5, OnFadeComplete);
+            Fade(topImage, 1, 5, OnFadeComplete);
         }
         else
         {
             Log.Debug("Hiding Top Image");
-            Fade(topImage, 1, 0, 5, OnFadeComplete);
+            Fade(topImage, 0, 5, OnFadeComplete);
         }
     }
 
@@ -271,7 +282,7 @@ public class ScreensaverWindow : Window
     {
         Log.Debug("Displaying Bottom Image");
         currentlyAnimating = true;
-        Fade(bottomImage, 0, 1, 5, OnFadeComplete);
+        Fade(bottomImage, 1, 5, OnFadeComplete);
     }
 
     void OnFadeComplete()
@@ -307,29 +318,85 @@ public class ScreensaverWindow : Window
 
     // MARK: Status + message labels
 
+    // The status line breathes: fade up, hold, fade down, pause, repeat — at a
+    // steady rhythm whether or not the text changes. Incoming statuses queue
+    // behind whatever is on screen and are only swapped in at zero opacity, so
+    // a message is never replaced mid-fade and every change is separated by a
+    // complete fade out. This is a deliberate departure from macOS, which
+    // interrupts the current fade the instant a new status arrives.
+    const double StatusFadeSeconds = 1.0;
+    static readonly TimeSpan StatusHold = TimeSpan.FromSeconds(2.5);
+    static readonly TimeSpan StatusPause = TimeSpan.FromSeconds(0.5);
+
+    // The horde poll emits a status every ~5s while generating, so this only
+    // elapses once generation has finished and the line has nothing left to say.
+    static readonly TimeSpan StatusIdleTimeout = TimeSpan.FromSeconds(12);
+
+    // A breath takes ~5s, about the poll interval, so the queue normally holds
+    // one entry. The cap covers bursts: statuses that arrive faster than they
+    // can be read are dropped oldest-first, because the newest one is the
+    // truthful description of what the horde is doing right now.
+    const int MaxQueuedStatuses = 3;
+
+    readonly Queue<string> statusQueue = new();
+    string? statusOnScreen;
+    DateTime lastStatusReceived;
+    bool statusBreathing;
+
     void UpdateStatusLabel(string text)
     {
-        statusFadeTimer?.Stop();
-        var current = statusLabel.Opacity;
-        statusLabel.BeginAnimation(OpacityProperty, null);
-        statusLabel.Opacity = current;
-        statusLabel.Text = text;
-        Fade(statusLabel, current, 1.0, 1.0);
-        statusFadeTimer = OneShot(TimeSpan.FromSeconds(5), () =>
-            Fade(statusLabel, statusLabel.Opacity, 0.0, 1.0));
+        lastStatusReceived = DateTime.UtcNow;
+
+        // Collapse consecutive repeats — the poll re-sends the same line every
+        // cycle, and re-queuing it would just delay genuinely new statuses.
+        var newest = statusQueue.Count > 0 ? statusQueue.Last() : statusOnScreen;
+        if (text == newest) return;
+
+        statusQueue.Enqueue(text);
+        while (statusQueue.Count > MaxQueuedStatuses) statusQueue.Dequeue();
+
+        if (!statusBreathing) BreatheStatusLabel();
     }
+
+    // Entered only at zero opacity, where changing the text is invisible.
+    void BreatheStatusLabel()
+    {
+        if (statusQueue.Count > 0)
+        {
+            statusOnScreen = statusQueue.Dequeue();
+            Log.Debug("Status: " + statusOnScreen);
+        }
+        else if (statusOnScreen == null || DateTime.UtcNow - lastStatusReceived > StatusIdleTimeout)
+        {
+            // Nothing new and the horde has gone quiet: rest dark until it speaks again.
+            statusBreathing = false;
+            statusOnScreen = null;
+            return;
+        }
+
+        statusBreathing = true;
+        statusLabel.Text = statusOnScreen;
+        Fade(statusLabel, 1.0, StatusFadeSeconds, () =>
+            statusCycleTimer = OneShot(StatusHold, FadeStatusLabelOut));
+    }
+
+    void FadeStatusLabelOut() =>
+        Fade(statusLabel, 0.0, StatusFadeSeconds, () =>
+            statusCycleTimer = OneShot(StatusPause, BreatheStatusLabel));
 
     void ShowMessage(string text)
     {
         messageLabel.Text = text;
         messagePulseTimer?.Stop();
         var visible = true;
-        Fade(messageLabel, messageLabel.Opacity, 1.0, 1.0);
-        messagePulseTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+        Fade(messageLabel, 1.0, 1.0);
+        // macOS chains fadeIn/fadeOutMessageLabel with a 5s delay measured from
+        // the start of each fade, so the label toggles every 5 seconds.
+        messagePulseTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
         messagePulseTimer.Tick += (_, _) =>
         {
             visible = !visible;
-            Fade(messageLabel, messageLabel.Opacity, visible ? 1.0 : 0.0, 1.0);
+            Fade(messageLabel, visible ? 1.0 : 0.0, 1.0);
         };
         messagePulseTimer.Start();
     }
@@ -359,14 +426,42 @@ public class ScreensaverWindow : Window
 
     // MARK: Helpers
 
-    static void Fade(UIElement element, double from, double to, double seconds, Action? completed = null)
+    // Core Animation, which the macOS build is written against, keeps a "model"
+    // opacity distinct from what is on screen: layer.opacity is committed to a
+    // fade's destination the instant that fade starts, and both the opacity
+    // tests and the next fade's starting point read that committed value rather
+    // than the value being rendered (EalainView.swift:266-292, 382, 395, 408,
+    // 420, 472). WPF's Opacity is the live animated value, so the committed
+    // value is tracked here instead. Interrupting a fade therefore snaps to the
+    // committed value first, exactly as removeAllAnimations() does on macOS.
+    readonly Dictionary<UIElement, double> committedOpacity = new();
+
+    double Committed(UIElement element) =>
+        committedOpacity.TryGetValue(element, out var value) ? value : 0.0;
+
+    // CAAnimationDelegate.animationDidStop only acts when finished is true
+    // (EalainView.swift:200-205), ignoring animations that were replaced.
+    // WPF raises Completed for superseded animations too, so this token is how
+    // the two cases are told apart; without it a replaced fade would clear the
+    // fade that replaced it and write back its own stale target.
+    readonly Dictionary<UIElement, object> fadeOwners = new();
+
+    void Fade(UIElement element, double to, double seconds, Action? completed = null)
     {
+        var from = Committed(element);
+        committedOpacity[element] = to;
+
+        var owner = new object();
+        fadeOwners[element] = owner;
+
         var animation = new DoubleAnimation(from, to, TimeSpan.FromSeconds(seconds))
         {
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
         };
         animation.Completed += (_, _) =>
         {
+            if (!fadeOwners.TryGetValue(element, out var current) || !ReferenceEquals(current, owner))
+                return;
             element.BeginAnimation(OpacityProperty, null);
             element.Opacity = to;
             completed?.Invoke();

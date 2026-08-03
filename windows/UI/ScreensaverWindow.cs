@@ -157,9 +157,9 @@ public class ScreensaverWindow : Window
         DisplayRegistry.Remove(windowId);
     }
 
-    void OnServiceStatus(string text) => Dispatcher.BeginInvoke(() => UpdateStatusLabel(text));
+    void OnServiceStatus(string text) => Dispatcher.InvokeAsync(() => UpdateStatusLabel(text));
 
-    void OnImagesSaved() => Dispatcher.BeginInvoke(() =>
+    void OnImagesSaved() => Dispatcher.InvokeAsync(() =>
     {
         if (!firstImageDisplayed) SwapHiddenImage();
     });
@@ -296,7 +296,7 @@ public class ScreensaverWindow : Window
                 bitmap.UriSource = new Uri(path);
                 bitmap.EndInit();
                 bitmap.Freeze();
-                Dispatcher.BeginInvoke(() => target.Source = bitmap);
+                Dispatcher.InvokeAsync(() => target.Source = bitmap);
             }
             catch (Exception ex)
             {
@@ -347,7 +347,7 @@ public class ScreensaverWindow : Window
                     && messages.TryGetValue(EalainInfo.MessagesKey, out var message)
                     && !string.IsNullOrEmpty(message))
                 {
-                    await Dispatcher.BeginInvoke(() => ShowMessage(message));
+                    await Dispatcher.InvokeAsync(() => ShowMessage(message));
                 }
             }
             catch (Exception ex)

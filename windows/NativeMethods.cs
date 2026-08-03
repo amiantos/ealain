@@ -34,7 +34,7 @@ public static class NativeMethods
         var rects = new List<RECT>();
         EnumDisplayMonitors(
             IntPtr.Zero, IntPtr.Zero,
-            (IntPtr _, IntPtr _, ref RECT rect, IntPtr _) =>
+            (IntPtr monitor, IntPtr hdc, ref RECT rect, IntPtr data) =>
             {
                 rects.Add(rect);
                 return true;

@@ -73,7 +73,7 @@ public static class Program
         Microsoft.Win32.SystemEvents.PowerModeChanged += (_, e) =>
         {
             if (e.Mode == Microsoft.Win32.PowerModes.Suspend)
-                app.Dispatcher.BeginInvoke(() => app.Shutdown());
+                app.Dispatcher.InvokeAsync(() => app.Shutdown());
         };
 
         if (windowed)
@@ -121,10 +121,10 @@ public static class Program
                 Height = Math.Max(rect.Height, 1),
             };
             var source = new HwndSource(parameters) { RootVisual = BuildPreviewVisual() };
-            source.AddHook((IntPtr _, int msg, IntPtr _, IntPtr _, ref bool _) =>
+            source.AddHook((IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
             {
                 if (msg == NativeMethods.WM_DESTROY)
-                    app.Dispatcher.BeginInvoke(() => app.Shutdown());
+                    app.Dispatcher.InvokeAsync(() => app.Shutdown());
                 return IntPtr.Zero;
             });
 

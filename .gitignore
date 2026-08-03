@@ -223,3 +223,8 @@ dist
 config.json
 
 .DS_Store
+# .NET / Windows port
+windows/bin/
+windows/obj/
+.vs/
+*.user

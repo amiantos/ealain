@@ -1,6 +1,8 @@
-# Ealain for macOS
+# Ealain
 
-Ealain is a macOS screensaver that displays abstract art generated with Stable Diffusion using the [AI Horde](https://aihorde.net). Limitless generative art gracing your screen, forever.
+Ealain is a screensaver for macOS and Windows that displays abstract art generated with Stable Diffusion using the [AI Horde](https://aihorde.net). Limitless generative art gracing your screen, forever.
+
+The macOS version lives in [`macOS/`](/macOS), and the Windows port lives in [`windows/`](/windows).
 
 ## Examples
 
@@ -11,6 +13,7 @@ These are some examples of the kind of art you may see on your screen, but you w
 ## Download
 
 - [Download Ealain v1.0 for macOS](https://amiantos.s3.amazonaws.com/ealain-1.0.zip)
+- Windows: no prebuilt download yet — see [windows/README.md](/windows/README.md) to build from source.
 
 ## Features
 ### Always Changing Generative Art
@@ -26,7 +29,10 @@ Ealain detects if you have your monitors in landscape or portrait orientation an
 
 ### Local Cache
 
-Ealain caches between 100-200 images on your local filesystem. You can find these images under: `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
+Ealain caches between 100-200 images on your local filesystem.
+
+- macOS: `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Ealain`
+- Windows: `%LOCALAPPDATA%\Ealain`
 
 # Community
 - Discuss Ealain on [the AI Horde Discord](https://discord.gg/Vc8fsQgW5E)

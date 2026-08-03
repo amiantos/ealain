@@ -1,0 +1,187 @@
+using System.Collections.Concurrent;
+using Ealain.Horde;
+
+namespace Ealain.Services;
+
+// One instance per screen orientation, shared by every window with that
+// orientation, so multiple monitors never submit duplicate horde requests.
+// This is the Windows port of EalainView.generateNewImages() from macOS.
+public sealed class GenerationService
+{
+    public const int MaxImages = 100;
+
+    static readonly ConcurrentDictionary<ScreenOrientation, GenerationService> Instances = new();
+
+    public static GenerationService For(ScreenOrientation orientation) =>
+        Instances.GetOrAdd(orientation, o => new GenerationService(o));
+
+    readonly ScreenOrientation orientation;
+    readonly HordeApi api = new();
+    readonly System.Threading.Timer pruneTimer;
+
+    int generating;
+    int connectionFailures;
+    bool stopTrying;
+
+    public string StyleId { get; }
+    public string ImagesFolder => ImageCache.GetImagesFolder(StyleId, orientation);
+
+    public event Action<string>? StatusChanged;
+    public event Action? ImagesSaved;
+
+    GenerationService(ScreenOrientation orientation)
+    {
+        this.orientation = orientation;
+        StyleId = Settings.Load().ResolvedStyleId;
+        pruneTimer = new System.Threading.Timer(
+            _ => PruneOldImages(), null, TimeSpan.FromSeconds(300), Timeout.InfiniteTimeSpan);
+    }
+
+    void Status(string text) => StatusChanged?.Invoke(text);
+
+    public void Kick()
+    {
+        if (stopTrying) return;
+        if (Interlocked.CompareExchange(ref generating, 1, 0) != 0) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await GenerateOnceAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Generation loop crashed: " + ex);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref generating, 0);
+            }
+        });
+    }
+
+    async Task GenerateOnceAsync()
+    {
+        if (ImageCache.GetImageFiles(ImagesFolder).Count >= MaxImages) return;
+
+        await Task.Delay(5000);
+
+        Guid? requestId = null;
+        try
+        {
+            Status("Requesting new images from the AI Horde");
+            var landscape = orientation == ScreenOrientation.Landscape;
+            var request = new HordeRequest(
+                Prompt: " ",
+                Style: StyleId,
+                Params: new HordeParams(N: 2, Width: landscape ? 1024 : 576, Height: landscape ? 576 : 1024));
+            var response = await api.SubmitRequestAsync(EalainInfo.HordeApiKey, request);
+            requestId = response.Id;
+            Status("Request submitted to the AI Horde");
+            connectionFailures = 0;
+            Log.Debug($"New generation request ID: {requestId}");
+            await Task.Delay(5000);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex.ToString());
+            Status("Unable to communicate with the AI Horde, retrying...");
+            connectionFailures++;
+            if (connectionFailures > 5)
+            {
+                stopTrying = true;
+                Status(StyleId != EalainInfo.DefaultStyleId
+                    ? "Reached maximum failures, please check your internet connection or verify style override is correct..."
+                    : "Reached maximum failures, please check your internet connection...");
+            }
+        }
+
+        if (requestId is not Guid id) return;
+
+        var failures = 0;
+        while (true)
+        {
+            try
+            {
+                var check = await api.CheckRequestAsync(EalainInfo.HordeApiKey, id);
+                Log.Debug(check.ToString());
+                if (check.Done)
+                {
+                    Status("Downloading new images from the AI Horde");
+                    var final = await api.FetchRequestAsync(EalainInfo.HordeApiKey, id);
+                    if (final.Generations != null)
+                    {
+                        Status("Storing new images downloaded from the AI Horde");
+                        var savedAny = false;
+                        foreach (var generation in final.Generations)
+                            if (!generation.Censored)
+                                savedAny |= await ImageCache.SaveImageFromUrlAsync(generation.Img, ImagesFolder);
+                        if (savedAny) ImagesSaved?.Invoke();
+                    }
+                    break;
+                }
+
+                if (!check.IsPossible)
+                    Status("There are insufficient AI Horde workers to generate new images, waiting");
+                else if (check.Processing == 0)
+                    Status(check.QueuePosition > 0
+                        ? $"Waiting (Currently #{check.QueuePosition} in queue)"
+                        : "Waiting for a worker to begin generating images");
+                else
+                    Status("Images are being generated by the AI Horde");
+            }
+            catch (HordeTimeoutException)
+            {
+                Status("Request to the AI Horde timed out, retrying");
+            }
+            catch (HordeInvalidResponseException ex)
+            {
+                Log.Error($"Received {ex.StatusCode} from AI Horde API. {ex.Content}");
+                failures++;
+                if (failures > 5)
+                {
+                    Log.Error("Reached maximum failures, breaking polling loop.");
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Unknown error occurred when polling horde? " + ex);
+            }
+
+            await Task.Delay(5000);
+        }
+    }
+
+    void PruneOldImages()
+    {
+        try
+        {
+            var files = ImageCache.GetImageFiles(ImagesFolder);
+            if (files.Count >= MaxImages)
+            {
+                Log.Debug("Pruning old images...");
+                var inUse = DisplayRegistry.AllInUse();
+                foreach (var file in files.Where(f => !inUse.Contains(f)).Take(2))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Unable to delete cached image file: " + ex.Message);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Unable to fetch file urls to prune: " + ex.Message);
+        }
+        finally
+        {
+            pruneTimer.Change(TimeSpan.FromSeconds(1980), Timeout.InfiniteTimeSpan);
+        }
+    }
+}
